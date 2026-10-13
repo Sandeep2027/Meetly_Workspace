@@ -70,6 +70,7 @@ function score(p){let s=0;if(p.length>=8)s++;if(p.length>=12)s++;if(/[a-z]/.test
 addEventListener('input',e=>{const i=e.target;if(!i.dataset?.meter)return;const m=i.closest('.pw').nextElementSibling,s=i.value?score(i.value):0,c=['#e4e8ef','#f04438','#f79009','#12b76a','#0b7a4b'][s];
   m.querySelectorAll('i').forEach((b,k)=>b.style.background=k<s?c:'#e4e8ef');m.querySelector('span').textContent=i.value?['Weak','Weak','Fair','Good','Strong'][s]:''});
 /* credential file: download + keep */
+const nextUrl=()=>{const n=sessionStorage.getItem('nextUrl');sessionStorage.removeItem('nextUrl');return n&&/^\/(call|dashboard)(\/|\?|#|$)/.test(n)?n:'/dashboard'};
 const normKey=k=>k.toUpperCase().replace(/[^A-Z0-9]/g,'');
 function credsModal(f,o){return new Promise(res=>{const c=f.credentials,inv=f.workspace_invite,name=`meetly-credentials-${f.account.email.split('@')[0]}-${f.issued_at.slice(0,10)}.json`;let saved=false;
   $('#modal').innerHTML=`<div class="box"><h2>${esc(o.title)}</h2><p class="mut" style="margin:4px 0 0">${esc(o.intro)}</p>
@@ -83,7 +84,7 @@ function credsModal(f,o){return new Promise(res=>{const c=f.credentials,inv=f.wo
 async function go(e,path,created){e.preventDefault();const f=e.target,err=f.querySelector('.err'),b=f.querySelector('.go');err.textContent='';b.disabled=true;
   try{const d=await api(path,Object.fromEntries(new FormData(f)));localStorage.setItem('tok',d.token);
     if(d.credentials_file)await credsModal(d.credentials_file,created?{title:'Workspace created',intro:'Save this file now. It holds your sign-in details, your personal recovery key, and the office code and secret for inviting employees.',cta:'Open dashboard'}:{title:'Account created',intro:'Save your credential file. If you ever lose your password you can reset it with this file.',cta:'Open dashboard'});
-    location.replace('/dashboard')}catch(x){err.textContent=x.message;b.disabled=false}}
+    location.replace(nextUrl())}catch(x){err.textContent=x.message;b.disabled=false}}
 /* forgot password */
 async function loadCred(file){if(!file)return;const d=$('#drop');
   try{const j=JSON.parse(await file.text()),c=j.credentials;if(j.schema!=='meetly.credentials/v1'||!c?.email||!c?.recovery_key)throw 0;
@@ -93,9 +94,9 @@ async function loadCred(file){if(!file)return;const d=$('#drop');
 async function doRecover(e){e.preventDefault();const f=e.target,err=f.querySelector('.err'),b=f.querySelector('.go'),v=Object.fromEntries(new FormData(f));err.textContent='';
   if(v.new_password!==v.confirm){err.textContent='The two passwords do not match.';return}
   b.disabled=true;try{const d=await api('/auth/recover',{email:v.email,recovery_key:v.recovery_key,new_password:v.new_password});localStorage.setItem('tok',d.token);
-    await credsModal(d.credentials_file,{title:'Password reset',intro:'Your password is changed and all other sessions were signed out. For safety your recovery key was replaced. Save the new file.',cta:'Open dashboard'});location.replace('/dashboard')}
+    await credsModal(d.credentials_file,{title:'Password reset',intro:'Your password is changed and all other sessions were signed out. For safety your recovery key was replaced. Save the new file.',cta:'Open dashboard'});location.replace(nextUrl())}
   catch(x){err.textContent=x.message;b.disabled=false}}
-(async()=>{const t=localStorage.getItem('tok');if(t){try{const r=await fetch('/api/bootstrap',{headers:{Authorization:'Bearer '+t}});if(r.ok)return location.replace('/dashboard');localStorage.removeItem('tok')}catch{}}show(location.hash==='#forgot'?'recover':'login')})();
+(async()=>{const t=localStorage.getItem('tok');if(t){try{const r=await fetch('/api/bootstrap',{headers:{Authorization:'Bearer '+t}});if(r.ok)return location.replace(nextUrl());localStorage.removeItem('tok')}catch{}}show(location.hash==='#forgot'?'recover':'login')})();
 </script>
 </body>
 </html>

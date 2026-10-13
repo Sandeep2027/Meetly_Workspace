@@ -74,33 +74,29 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:11px 10px
 .emo{margin:0 16px 6px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:8px;display:grid;grid-template-columns:repeat(10,1fr);font-size:21px;box-shadow:var(--sh)}.emo button{border:0;background:none;padding:3px}.emo button:hover{background:var(--ac2)}
 .drop{position:absolute;inset:0;background:#4f46e5d9;color:#fff;display:none;place-items:center;font-size:22px;font-weight:800;z-index:4;border:3px dashed #fff}.drop.on{display:grid}
 .cinfo{width:330px;background:#fff;border-left:1px solid var(--line);overflow:auto;padding:18px;flex:none}
-#pop{position:fixed;z-index:30;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px #10182826;padding:6px;display:none;min-width:190px}#pop button{display:flex;gap:10px;align-items:center;width:100%;border:0;background:none;text-align:left;padding:8px 10px;border-radius:8px;font-weight:500}#pop button:hover{background:#f4f6f9}#pop .rr{display:flex;gap:2px;padding:2px 2px 6px;border-bottom:1px solid var(--line);margin-bottom:4px}#pop .rr button{width:auto;font-size:20px;padding:2px 5px}
+#pop{position:fixed;z-index:45;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px #10182826;padding:6px;display:none;min-width:190px}#pop button{display:flex;gap:10px;align-items:center;width:100%;border:0;background:none;text-align:left;padding:8px 10px;border-radius:8px;font-weight:500}#pop button:hover{background:#f4f6f9}#pop .rr{display:flex;gap:2px;padding:2px 2px 6px;border-bottom:1px solid var(--line);margin-bottom:4px}#pop .rr button{width:auto;font-size:20px;padding:2px 5px}
 .empty{margin:auto;text-align:center;max-width:380px;color:var(--mut);padding:30px}
-/* call stage */
-#stage{display:none;background:#0c1220;color:#fff;padding:12px 16px 14px;flex-direction:column;gap:10px}#stage.on{display:flex}
-.sh{display:flex;gap:12px;align-items:center;font-size:13.5px}.sh .note{margin-left:auto;background:#ffffff1c;border-radius:20px;padding:2px 12px}.sh .note.me{background:var(--bad)}
-#tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;max-height:44vh;overflow:auto}
-.pt{position:relative;background:#18213a;border-radius:14px;min-height:120px;display:grid;place-items:center;overflow:hidden;border:2px solid transparent;transition:border-color .15s}.pt.talk{border-color:#31d08f}
-.pt video{display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0}.pt.hasvid video{display:block}.pt.hasvid .pav{display:none}
-.pt .nm{position:absolute;left:10px;bottom:8px;font-size:12.5px;background:#0009;padding:1px 10px;border-radius:20px}.pt.present{grid-column:1/-1;aspect-ratio:16/9;max-height:42vh;background:#000}.pt.present video{display:block;object-fit:contain}
-.ctl{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}.ctl button{background:#ffffff1c;border-color:transparent;color:#fff;display:flex;gap:7px;align-items:center}.ctl button:hover{background:#ffffff2e}.ctl button.bad{background:var(--bad)}.ctl button.off{background:#fff;color:#0c1220}
+#mini{position:fixed;right:18px;bottom:18px;z-index:24;background:#0b1020;color:#fff;border-radius:18px;padding:10px 12px;display:flex;gap:10px;align-items:center;box-shadow:0 12px 34px #0007}#mini[hidden]{display:none}
+#mini .mb{color:#fff;background:#ffffff1f}#mini .mb.off{background:#fff;color:#0b1020}#mini .mb.bad{background:var(--bad)}.dotl{width:10px;height:10px;border-radius:50%;background:#31d08f;animation:pl 1.6s infinite}@keyframes pl{50%{opacity:.35}}
+#notes{position:fixed;top:16px;right:16px;z-index:46;display:grid;gap:10px;width:min(360px,calc(100vw - 32px))}.note{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:0 10px 30px #10182830}
+.avs{display:flex}.avs .av{margin-left:-8px;border:2px solid #fff}.avs .av:first-child{margin-left:0}.trunc2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0 0 8px}
 /* modal + misc */
-#modal{position:fixed;inset:0;background:#0a0f24b3;display:none;place-items:center;z-index:20;padding:16px}#modal.on{display:grid}
+#modal{position:fixed;inset:0;background:#0a0f24b3;display:none;place-items:center;z-index:40;padding:16px}#modal.on{display:grid}
 .box{background:#fff;border-radius:18px;padding:24px;width:min(560px,100%);max-height:90vh;overflow:auto}.box.wide{width:min(780px,100%)}.box h2{font-size:20px;margin-bottom:4px}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}.g2 .full{grid-column:1/-1}.err{color:var(--bad);font-size:13px;min-height:20px;margin:6px 0}
 .chk{display:flex;gap:9px;align-items:center;padding:5px 0;margin:0;font-weight:500}.chk input{width:auto}.checks{max-height:210px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:4px 12px}
 .code{font-family:ui-monospace,monospace;background:var(--ac2);color:var(--ac);padding:8px 12px;border-radius:9px;display:inline-block;font-size:16px;font-weight:600;user-select:all}
 .cr{border:1px solid var(--line);border-radius:12px;margin:14px 0}.cr div{display:flex;gap:10px;justify-content:space-between;align-items:center;padding:9px 13px;border-bottom:1px solid var(--line);font-size:13.5px}.cr div:last-child{border:0}.cr span{color:var(--mut)}
 .warn{background:#fff6e5;border:1px solid #fde3b0;color:#8a5a00;border-radius:10px;padding:9px 12px;font-size:13px;margin:10px 0}.full-btn{width:100%;margin-top:8px;padding:11px}
-#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#101828;color:#fff;padding:10px 18px;border-radius:12px;display:none;z-index:40;font-weight:500}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#101828;color:#fff;padding:10px 18px;border-radius:12px;display:none;z-index:50;font-weight:500}
 .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.thumbs div{width:92px;text-align:center;font-size:11.5px;word-break:break-all}.thumbs img{width:92px;height:72px;object-fit:cover;border-radius:10px;display:block}.thumbs .ph3{width:92px;height:72px;border-radius:10px;background:var(--ac2);color:var(--ac);display:grid;place-items:center}
-@media(max-width:860px){#app,#app.hp{grid-template-columns:1fr;grid-template-rows:1fr 58px}#rail{grid-row:2;flex-direction:row;justify-content:space-around;padding:4px}.logo,.sp{display:none}
+@media(max-width:860px){#mini{bottom:70px}#app,#app.hp{grid-template-columns:1fr;grid-template-rows:1fr 58px}#rail{grid-row:2;flex-direction:row;justify-content:space-around;padding:4px}.logo,.sp{display:none}
  #app.hp #panel{grid-row:1}#app.hp main{display:none}#app.hp.inroom #panel{display:none}#app.hp.inroom main{display:flex}.chd .back{display:grid}.cinfo{position:absolute;inset:0;width:auto;z-index:6}.page{padding:18px 14px}.g2{grid-template-columns:1fr}.bub{max-width:88%}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
-<div id="app" hidden></div><div id="modal"></div><div id="pop"></div><div id="toast"></div>
+<div id="app" hidden></div><div id="mini" hidden></div><div id="notes"></div><div id="modal"></div><div id="pop"></div><div id="toast"></div>
 <script>
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -117,11 +113,15 @@ send:'<path d="M3 11l18-8-8 18-2-8z"/>',search:'<circle cx="11" cy="11" r="7"/><
 x:'<path d="M6 6l12 12M18 6L6 18"/>',plus:'<path d="M12 5v14M5 12h14"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',file:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/>',
 down:'<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>',reply:'<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 6 6v3"/>',trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
 smile:'<circle cx="12" cy="12" r="9"/><path d="M8 14a5 5 0 0 0 8 0M9 9.5h.01M15 9.5h.01"/>',back:'<path d="M15 5l-7 7 7 7"/>',edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/>',copy:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>'};
+Object.assign(ICONS,{hand:'<path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11M11 10.5V4a1.5 1.5 0 0 1 3 0v7M14 11V5.5a1.5 1.5 0 0 1 3 0V14c0 4-2.5 7-6.5 7-3 0-4.5-1.6-6-4.2l-1.6-2.8a1.5 1.5 0 0 1 2.6-1.5L8 15"/>',
+settings:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
+min:'<path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/>',layout:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>',
+adduser:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 3-6 6.5-6s6.5 2.4 6.5 6M19 8v6M16 11h6"/>',pin:'<path d="M12 17v5M8 3h8l-1 6 3 3H6l3-3z"/>',cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'});
 const ic=(n,s=20)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${ICONS[n]}</svg>`;
 const S={token:localStorage.getItem('tok'),me:null,ws:null,users:[],teams:[],meetings:[],calls:[],unread:{},last:{},counts:{},sec:'',room:null,rinfo:null,msgs:[],more:false,peerRead:0,replyTo:null,up:[],cf:'all',cq:'',typing:0};
 const ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'}]}; // add your TURN server for production
 const EMOJI=['😀','😂','🥰','😍','😎','🤔','😢','😮','🙏','👍','👎','👏','🎉','🔥','❤️','✅','❌','⭐','💡','📌','🚀','👀','💪','🙌','😅','😴','🤝','☕','📎','⚠️'];
-let sock=null,local=null,pcs={},callRoom=null,callMode='voice',muted=false,camOff=false,screen=null,ss={},sharing={},callT=null,callStart=0,locked=false;
+let sock=null,locked=false;
 const go=h=>location.hash=h;
 const enc=encodeURIComponent;
 const isAdm=()=>S.me.access==='admin',isMgr=()=>S.me.access!=='member';
@@ -137,7 +137,16 @@ const fmtSize=b=>b<1024?b+' B':b<1048576?Math.round(b/1024)+' KB':(b/1048576).to
 const dayKey=t=>new Date(t*1000).toDateString();
 function dayLabel(t){const d=new Date(t*1000),n=new Date(),y=new Date(Date.now()-864e5);return d.toDateString()===n.toDateString()?'Today':d.toDateString()===y.toDateString()?'Yesterday':d.toLocaleDateString([],{dateStyle:'long'})}
 function shortTime(t){if(!t)return'';const d=new Date(t*1000);return d.toDateString()===new Date().toDateString()?hm(t):d.toDateString()===new Date(Date.now()-864e5).toDateString()?'Yesterday':d.toLocaleDateString([],{day:'numeric',month:'short'})}
-const upcoming=m=>!m.scheduled_at||new Date(m.scheduled_at)>Date.now()-2*36e5;
+function mStart(m){return m.starts_at?m.starts_at*1000:(m.scheduled_at?new Date(m.scheduled_at).getTime():null)}
+function mEnd(m){return m.ends_at?m.ends_at*1000:(mStart(m)?mStart(m)+36e5:null)}
+function upcoming(m){const e=mEnd(m);return e?e>Date.now():(Date.now()/1000-(m.created||0)<12*3600)}
+const durTxt=n=>n<60?n+' min':n%60?Math.floor(n/60)+' hr '+n%60+' min':n/60+' hr';
+const durS=t=>t<60?t+' s':t<3600?Math.floor(t/60)+' min '+(t%60)+' s':Math.floor(t/3600)+' hr '+Math.floor(t%3600/60)+' min';
+function mWhen(m){const s=mStart(m);if(!s)return'Instant meeting';const d=new Date(s),o={hour:'numeric',minute:'2-digit'};
+  return d.toLocaleDateString([],{weekday:'short',day:'numeric',month:'short'})+', '+d.toLocaleTimeString([],o)+(m.starts_at&&m.ends_at?' – '+new Date(m.ends_at*1000).toLocaleTimeString([],o)+' ('+durTxt((m.ends_at-m.starts_at)/60)+')':'')}
+const ringTargets=rid=>rid.startsWith('dm_')?rid.slice(3).split('_'):(S.calls.find(c=>c.id===rid)?.members||S.meetings.find(m=>m.id===rid)?.invitees||S.teams.find(t=>t.room===rid||t.spaces.some(s=>s.id===rid))?.members||[]);
+function notify(title,body,actions=[],ms=15000){const n=document.createElement('div');n.className='note';n.innerHTML=`<b>${esc(title)}</b><div class="mut" style="margin:3px 0 9px">${esc(body)}</div><div class="row">${actions.map((a,i)=>`<button class="sm ${a.pri?'pri':''}" data-i="${i}">${esc(a.label)}</button>`).join('')}<button class="sm" data-x="1">Dismiss</button></div>`;
+  n.onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.i!=null)actions[b.dataset.i].fn();n.remove()};$('#notes').append(n);setTimeout(()=>n.remove(),ms)}
 const genPw=()=>Array.from(crypto.getRandomValues(new Uint8Array(10)),b=>'abcdefghjkmnpqrstuvwxyz23456789'[b%31]).join('')+'A7';
 const linkify=h=>h.replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
 const dmId=u=>'dm_'+[S.me.id,u].sort().join('_');
@@ -172,7 +181,7 @@ function formModal(o){
   const fld=f=>{const v=f.v??'';let i;
     if(f.opts)i=`<select name="${f.n}">${f.opts.map(([a,b])=>`<option value="${esc(a)}" ${a==v?'selected':''}>${esc(b)}</option>`).join('')}</select>`;
     else if(f.t==='area')i=`<textarea name="${f.n}" rows="3" maxlength="300">${esc(v)}</textarea>`;
-    else if(f.list)i=`<div class="checks">${f.list.map(([a,b,s])=>`<label class="chk"><input type="checkbox" name="${f.n}" value="${a}"> ${esc(b)} <span class="mut">${esc(s||'')}</span></label>`).join('')||'<span class="mut">No one available</span>'}</div>`;
+    else if(f.list)i=`<div class="checks">${f.list.length>3?`<button type="button" class="sm" style="margin:6px 0" onclick="const b=[...this.parentElement.querySelectorAll('input')],all=b.every(x=>x.checked);b.forEach(x=>x.checked=!all)">Select all / none</button>`:''}${f.list.map(([a,b,s,k])=>`<label class="chk"><input type="checkbox" name="${f.n}" value="${a}" ${k?'checked':''}> ${esc(b)} <span class="mut">${esc(s||'')}</span></label>`).join('')||'<span class="mut">No one available</span>'}</div>`;
     else i=`<input name="${f.n}" type="${f.t||'text'}" value="${esc(v)}" ${f.req?'required':''} ${f.min?`minlength="${f.min}"`:''}>`;
     return `<div class="${f.full?'full':''}"><label>${f.l}</label>${i}</div>`};
   modal(`<h2>${o.title}</h2>${o.intro?`<p class="mut" style="margin:4px 0 0">${o.intro}</p>`:''}<form id="mf"><div class="g2">${o.fields.map(fld).join('')}</div><div class="err"></div><div class="row"><button class="pri">${o.submit||'Save'}</button><button type="button" onclick="closeModal()">Cancel</button></div></form>`,o.wide);
@@ -185,11 +194,12 @@ function logout(){localStorage.removeItem('tok');S.token=null;try{leaveCall()}ca
 async function load(){const d=await api('/bootstrap');Object.assign(S,{me:d.me,ws:d.workspace,users:d.users,teams:d.teams,meetings:d.meetings,calls:d.calls,unread:d.unread,last:d.last})}
 async function refresh(){await load();renderRail();renderPanel()}
 (async function boot(){
+  window.name='meetly-dash';
   if(!S.token){sessionStorage.setItem('next',location.hash);return location.replace('/')}
   try{await load()}catch{return}
   const n=sessionStorage.getItem('next');if(n){sessionStorage.removeItem('next');location.hash=n}
   $('#app').hidden=false;
-  $('#app').innerHTML=`<nav id="rail"></nav><section id="panel"></section><main><div id="stage"><div class="sh"><b id="st-t"></b><span id="st-timer" class="mut"></span><span class="note" id="st-note"></span></div><div id="tiles"></div><div class="ctl" id="ctl"></div></div><div id="view"></div></main>`;
+  $('#app').innerHTML=`<nav id="rail"></nav><section id="panel"></section><main><div id="view"></div></main>`;
   connect();addEventListener('hashchange',route);await route();if(S.me.must_change)forcePw()})();
 function forcePw(){formModal({title:'Set a new password',intro:'An admin created or reset your account. Choose your own password to continue.',fields:[{n:'current',l:'Temporary password',t:'password',req:1,full:1},{n:'new',l:'New password (8+ characters, letters and numbers)',t:'password',req:1,min:8,full:1}],submit:'Update password',onSubmit:async d=>{const r=await api('/me/password','POST',d);S.token=r.token;localStorage.setItem('tok',r.token);S.me.must_change=false;closeModal();connect();toast('Password updated')}});locked=true}
 function renderRail(){
@@ -205,7 +215,7 @@ function renderPanel(){
   if(S.sec!=='chats')return;const q=S.cq.toLowerCase();
   const L=convs().filter(x=>(S.cf==='all'||(S.cf==='unread'&&x.un)||(S.cf==='groups'&&x.kind!=='dm'))&&(x.name+x.sub).toLowerCase().includes(q));
   const prev=x=>x.last?`${x.last.user===S.me.id&&!x.last.system?'You: ':''}${x.last.file&&!x.last.text?'📎 Attachment':esc(x.last.text)}`:esc(x.sub);
-  $('#panel').innerHTML=`<div class="ph"><div class="row"><h1 class="grow" style="font-size:22px">Chats</h1><button class="ib" title="New group call" onclick="groupForm()">${ic('phone')}</button><button class="ib" title="New team" onclick="${isMgr()?'teamForm()':"toast('Only managers and admins can create teams')"}">${ic('plus')}</button></div>
+  $('#panel').innerHTML=`<div class="ph"><div class="row"><h1 class="grow" style="font-size:22px">Chats</h1><button class="ib pb" title="New group, meeting or team" onclick="newMenu(event)">${ic('plus')}</button></div>
   <div class="srch">${ic('search',17)}<input id="cq" placeholder="Search people, teams, calls" value="${esc(S.cq)}" oninput="S.cq=this.value;const p=this.selectionStart;renderPanel();const i=$('#cq');i.focus();i.setSelectionRange(p,p)"></div>
   <div class="chips">${[['all','All'],['unread','Unread'],['groups','Groups']].map(([k,l])=>`<button class="${S.cf===k?'on':''}" onclick="S.cf='${k}';renderPanel()">${l}</button>`).join('')}</div></div>
   <div id="list">${L.map(x=>`<button class="ci ${S.room===x.id?'on':''}" onclick="${x.kind==='dm'?`openDM('${x.uid}')`:`go('#/chats/${x.id}')`}">${x.kind==='dm'?av(x.name,x.uid,46,x.online):gav(x.name,x.id,46)}<span class="grow"><b class="trunc" style="display:block">${esc(x.name)}</b><small class="trunc" style="display:block">${prev(x)}</small></span><span class="tm ${x.un?'u':''}">${shortTime(x.ts)}${x.un?`<br><span class="badge">${x.un}</span>`:''}</span></button>`).join('')||'<div class="empty">No conversations match</div>'}</div>`}
@@ -224,28 +234,50 @@ function roomKind(id){return id.startsWith('dm_')?'dm':S.calls.some(c=>c.id===id
 /* ================= DASHBOARD + EMPLOYEE PAGES ================= */
 const pages={};
 pages.dashboard=async()=>{
-  const up=S.meetings.filter(upcoming).slice(0,5),un=Object.entries(S.unread).filter(([,n])=>n>0),h=new Date().getHours(),g=h<12?'morning':h<18?'afternoon':'evening';
+  const hist=await api('/calls/history').catch(()=>[]);const up=S.meetings.filter(upcoming).slice(0,5),un=Object.entries(S.unread).filter(([,n])=>n>0),h=new Date().getHours(),g=h<12?'morning':h<18?'afternoon':'evening';
   const online=S.users.filter(u=>u.online&&u.id!==S.me.id);
   const T=(i,n,l)=>`<div class="card stat"><i>${ic(i,22)}</i><div><b>${n}</b><span>${l}</span></div></div>`;
   const Q=(c,i,t,s,f)=>`<button onclick="${f}"><i style="background:${c}">${ic(i,22)}</i><span><b>${t}</b><small>${s}</small></span></button>`;
   view(`<div class="page"><div class="ph2"><div class="grow"><h1>Good ${g}, ${esc(S.me.name.split(' ')[0])}</h1><span class="mut">${new Date().toLocaleDateString([],{weekday:'long',day:'numeric',month:'long'})} · ${esc(S.ws.name)}</span></div></div>
-  <div class="qa">${Q('#4f46e5','chat','Start a chat','Message a colleague',"go('#/chats')")}${Q('#12b76a','phone','Voice call','Call one or more people','groupForm()')}${Q('#f79009','video','New meeting','Video meeting with a link','meetingForm()')}${isMgr()?Q('#0ea5e9','users','Create a team','Chat and spaces for a department','teamForm()'):Q('#0ea5e9','book','People','Browse the directory',"go('#/people')")}</div>
+  <div class="qa">${Q('#4f46e5','chat','Start a chat','Message a colleague',"go('#/chats')")}${Q('#12b76a','chat','New group','Group chat with calls and meetings','groupForm()')}${Q('#f79009','video','New meeting','Schedule or start, with invites','meetingForm()')}${isMgr()?Q('#0ea5e9','users','Create a team','Chat and spaces for a department','teamForm()'):Q('#0ea5e9','book','People','Browse the directory',"go('#/people')")}</div>
   <div class="tiles">${T('chat',unreadTotal(),'Unread messages')}${T('video',up.length,'Upcoming meetings')}${T('users',S.teams.length,isAdm()?'Teams in workspace':'Your teams')}${T('user',online.length+1,'People online')}</div>
-  <div class="cols"><div class="card"><div class="row" style="margin-bottom:6px"><h3 class="grow">Upcoming meetings</h3><button class="sm" onclick="go('#/meetings')">All</button></div>${up.map(m=>`<div class="li"><span class="grow"><b>${esc(m.title)}</b><br><small class="mut">${fmtDT(m.scheduled_at)}</small></span><button class="sm pri" onclick="joinMeeting('${m.id}')">Join</button></div>`).join('')||'<p class="mut">Nothing scheduled.</p>'}</div>
+  <div class="cols"><div class="card"><div class="row" style="margin-bottom:6px"><h3 class="grow">Upcoming meetings</h3><button class="sm" onclick="go('#/meetings')">All</button></div>${up.map(m=>`<div class="li"><span class="grow"><b>${esc(m.title)}</b><br><small class="mut">${mWhen(m)}</small></span><button class="sm pri" onclick="joinMeeting('${m.id}')">Join</button></div>`).join('')||'<p class="mut">Nothing scheduled.</p>'}</div>
   <div class="card"><h3 style="margin-bottom:6px">Unread conversations</h3>${un.map(([id,n])=>`<div class="li" style="cursor:pointer" onclick="go('#/chats/${id}')"><span class="grow">${esc(roomLabel(id))}</span><span class="badge">${n}</span></div>`).join('')||'<p class="mut">You are all caught up.</p>'}</div>
   <div class="card"><h3 style="margin-bottom:6px">Online now</h3>${online.slice(0,6).map(u=>`<div class="li">${av(u.name,u.id,38,true)}<span class="grow"><b>${esc(u.name)}</b><br><small class="mut">${esc(u.role)}</small></span><button class="ib" title="Message" onclick="openDM('${u.id}')">${ic('chat',18)}</button><button class="ib" title="Voice call" onclick="callUser('${u.id}')">${ic('phone',18)}</button></div>`).join('')||'<p class="mut">No one else is online.</p>'}</div>
+  <div class="card"><h3 style="margin-bottom:6px">Recent calls</h3>${hist.slice(0,5).map(h=>`<div class="li"><span class="grow"><b>${esc(h.title)}</b><br><small class="mut">${h.mode==='video'?'Meeting':'Voice'} · ${fmtTs(h.started)}${h.ended?' · '+durS(h.ended-h.started):' · live'} · ${h.people} people</small></span></div>`).join('')||'<p class="mut">No calls yet.</p>'}</div>
   <div class="card"><div class="row" style="margin-bottom:6px"><h3 class="grow">${isAdm()?'All teams':'My teams'}</h3><button class="sm" onclick="go('#/teams')">Open</button></div>${S.teams.slice(0,5).map(t=>`<div class="li" style="cursor:pointer" onclick="go('#/chats/${t.room}')">${gav(t.name,t.id,38)}<span class="grow"><b>${esc(t.name)}</b><br><small class="mut">${esc(t.department)} · ${t.members.length} members</small></span></div>`).join('')||'<p class="mut">No teams yet.</p>'}</div></div></div>`)};
+function meetingCard(m){const mine=m.owner===S.me.id||isAdm(),s=mStart(m),now_=Date.now(),soon=s&&s>now_&&s-now_<36e5,live=s&&s<=now_&&mEnd(m)>now_;
+  return `<div class="card"><div class="row"><h3 class="grow">${esc(m.title)}</h3>${live?'<span class="tag ok">In progress</span>':soon?'<span class="tag">Starts soon</span>':''}</div><p class="mut" style="margin:6px 0">${esc(mWhen(m))}</p>
+  <div class="row" style="margin-bottom:8px"><div class="avs">${m.invitees.slice(0,5).map(i=>av(uname(i),i,28)).join('')}</div><small class="mut">${m.invitees.length} people · by ${esc(uname(m.owner))}</small></div>${m.description?`<p class="mut trunc2">${esc(m.description)}</p>`:''}
+  <div class="row"><button class="pri sm" onclick="joinMeeting('${m.id}')">Join</button><button class="sm" onclick="meetingInfo('${m.id}')">Details</button><button class="sm" onclick="go('#/chats/${m.id}')">Chat</button>${mine?`<button class="sm" onclick="meetingForm('${m.id}')">Edit</button><button class="sm" onclick="delMeeting('${m.id}')">Delete</button>`:''}</div></div>`}
 pages.meetings=async()=>{await refresh();
-  const card=m=>{const mine=m.owner===S.me.id||isAdm();return `<div class="card"><div class="row"><h3 class="grow">${esc(m.title)}</h3><span class="tag">${m.id}</span></div><p class="mut" style="margin:6px 0">${fmtDT(m.scheduled_at)} · by ${esc(uname(m.owner))}</p>${m.description?`<p>${esc(m.description)}</p>`:''}<div class="row"><button class="pri sm" onclick="joinMeeting('${m.id}')">Join with video</button><button class="sm" onclick="go('#/chats/${m.id}')">Chat</button><button class="sm" onclick="copy(location.origin+'/dashboard#/chats/${m.id}')">Copy link</button>${mine?`<button class="sm" onclick="meetingForm('${m.id}')">Edit</button><button class="sm" onclick="delMeeting('${m.id}')">Delete</button>`:''}</div></div>`};
-  const up=S.meetings.filter(upcoming),past=S.meetings.filter(m=>!upcoming(m));
-  view(`<div class="page"><div class="ph2"><h1 class="grow">Meetings</h1><button class="pri" onclick="meetingForm()">${ic('plus',16)} New meeting</button></div><div class="cards">${up.map(card).join('')||'<p class="mut">No meetings yet. Create one to get an invite link.</p>'}</div>${past.length?`<h3 style="margin:26px 0 12px">Past</h3><div class="cards">${past.map(card).join('')}</div>`:''}</div>`)};
-async function joinMeeting(id){go('#/chats/'+id);joinCall(id,false)}
-function meetingForm(id){const m=S.meetings.find(x=>x.id===id)||{};
-  formModal({title:id?'Edit meeting':'New meeting',intro:'Meetings are video calls. Everyone in your workspace with the link can join.',fields:[{n:'title',l:'Title',v:m.title,req:1,full:1},{n:'scheduled_at',l:'When (leave empty for an instant meeting)',t:'datetime-local',v:m.scheduled_at,full:1},{n:'description',l:'Agenda',t:'area',v:m.description,full:1}],submit:id?'Save changes':'Create meeting',
-  onSubmit:async d=>{if(id){await api('/meetings/'+id,'PATCH',d);closeModal();toast('Meeting updated');await refresh();route()}else{const r=await api('/meetings','POST',d);closeModal();await refresh();copy(location.origin+'/dashboard#/chats/'+r.id);go('#/chats/'+r.id)}}})}
-async function delMeeting(id){if(!confirm('Delete this meeting and its chat?'))return;try{await api('/meetings/'+id,'DELETE');toast('Meeting deleted');await refresh();route()}catch(e){toast(e.message)}}
-function groupForm(){formModal({title:'Start a voice call',intro:'Pick 2 to 7 people. They are rung straight away. Screen sharing is available during the call.',fields:[{n:'title',l:'Call name',v:'Group call',req:1,full:1},{n:'invite_ids',l:'People',full:1,list:S.users.filter(u=>u.id!==S.me.id).map(u=>[u.id,u.name,u.role])}],submit:'Call now',
-  onSubmit:async d=>{const r=await api('/calls','POST',{title:d.title,invite_ids:d.invite_ids||[]});closeModal();await refresh();go('#/chats/'+r.id);joinCall(r.id,true)}})}
+  const up=S.meetings.filter(upcoming).sort((a,b)=>(mStart(a)||Infinity)-(mStart(b)||Infinity)),past=S.meetings.filter(m=>!upcoming(m));
+  view(`<div class="page"><div class="ph2"><h1 class="grow">Meetings</h1><button class="pri" onclick="meetingForm()">${ic('plus',16)} New meeting</button></div><h3 style="margin-bottom:12px">Upcoming</h3><div class="cards">${up.map(meetingCard).join('')||'<p class="mut">No upcoming meetings. Create one and invite people. They get a chat message with the time, duration, agenda and who is invited.</p>'}</div>${past.length?`<h3 style="margin:26px 0 12px">Past</h3><div class="cards">${past.map(meetingCard).join('')}</div>`:''}</div>`)};
+function inviteText(m){const L=['📅 '+m.title,'When: '+mWhen(m)],ag=(m.description||'').split('\n').map(x=>x.trim()).filter(Boolean);if(ag.length)L.push('Agenda:',...ag.map(x=>'  - '+x));
+  L.push(`People (${m.invitees.length}): `+m.invitees.map(uname).join(', '),'Organizer: '+uname(m.owner),'Join: '+location.origin+'/call/'+m.id);return L.join('\n')}
+function meetingInfo(id){const m=S.meetings.find(x=>x.id===id);if(!m)return;const mine=m.owner===S.me.id||isAdm();
+  modal(`<h2>${esc(m.title)}</h2><p class="mut" style="margin:2px 0 12px">${esc(mWhen(m))}</p>${m.description?`<h3 style="font-size:14px">Agenda</h3><p style="white-space:pre-wrap;margin:4px 0 12px">${esc(m.description)}</p>`:''}<h3 style="font-size:14px;margin-bottom:4px">People (${m.invitees.length})</h3>${m.invitees.map(i=>`<div class="li">${av(uname(i),i,32)}<span class="grow">${esc(uname(i))}${i===m.owner?' <span class="tag">Organizer</span>':''}</span></div>`).join('')}
+  <div class="row" style="margin-top:14px"><button class="pri" onclick="closeModal();joinMeeting('${id}')">${ic('video',16)} Join</button><button onclick="copy(inviteText(S.meetings.find(x=>x.id==='${id}')))">Copy details</button>${m.starts_at?`<a href="/api/meetings/${id}.ics?token=${S.token}" download><button type="button">Add to calendar</button></a>`:''}${mine?`<button onclick="closeModal();meetingForm('${id}')">Edit</button>`:''}<button onclick="closeModal()">Close</button></div>`)}
+function joinMeeting(id){joinCall(id,false)}
+function meetingForm(id,ctx){const m=S.meetings.find(x=>x.id===id)||{},pre=new Set(id?m.invitees.filter(x=>x!==m.owner):(ctx?.members||[]));
+  const toLocal=ts=>{if(!ts)return'';const d=new Date(ts*1000-new Date(ts*1000).getTimezoneOffset()*6e4);return d.toISOString().slice(0,16)};
+  const dur=m.ends_at&&m.starts_at?(m.ends_at-m.starts_at)/60:60,opts=[15,30,45,60,90,120,180];if(!opts.includes(dur))opts.push(dur);
+  formModal({title:id?'Edit meeting':ctx?'Meeting with '+ctx.name:'New meeting',intro:'Invited people get a chat message with the date, time, duration, agenda and who is invited. Leave the start empty to start now and ring them.',wide:1,
+  fields:[{n:'title',l:'Title',v:m.title||(ctx?ctx.name+' meeting':''),req:1,full:1},{n:'starts',l:'Start',t:'datetime-local',v:toLocal(m.starts_at)},{n:'duration',l:'Duration',opts:opts.sort((a,b)=>a-b).map(x=>[x,durTxt(x)]),v:dur},
+  {n:'description',l:'Agenda (one point per line)',t:'area',v:m.description,full:1},{n:'invitee_ids',l:'Invite people',full:1,list:S.users.filter(u=>u.id!==S.me.id).map(u=>[u.id,u.name,u.role,pre.has(u.id)])}],submit:id?'Save and notify':'Create and send invites',
+  onSubmit:async d=>{const starts=d.starts?Math.floor(new Date(d.starts).getTime()/1000):null,body={title:d.title,description:d.description||'',starts_at:starts,duration_min:+d.duration,tz_offset:-new Date().getTimezoneOffset(),invitee_ids:d.invitee_ids||[],context_room:ctx?.room||null};
+    if(id){await api('/meetings/'+id,'PATCH',body);closeModal();toast('Meeting updated. Invitees were notified in chat');await refresh();route()}
+    else{const r=await api('/meetings','POST',body);closeModal();await refresh();if(!starts){go('#/chats/'+r.id);joinCall(r.id,true)}else{toast(`Meeting created. ${r.invited} people were messaged in chat`);if(S.sec==='meetings')route()}}}})}
+async function delMeeting(id){if(!confirm('Delete this meeting? Invitees get a cancellation message.'))return;try{await api('/meetings/'+id,'DELETE');toast('Meeting deleted');await refresh();route()}catch(e){toast(e.message)}}
+function meetFromRoom(){hidePop();const r=S.rinfo,members=r.kind==='call'?r.members:(S.teams.find(t=>t.id===r.team)?.members||[]);meetingForm(null,{room:r.id,name:r.name,members:members.filter(x=>x!==S.me.id)})}
+function groupForm(){formModal({title:'New group',intro:'A group chat for 3 or more people. Start voice calls and schedule meetings from inside it.',fields:[{n:'title',l:'Group name',req:1,full:1},{n:'invite_ids',l:'Members (pick at least 2)',full:1,list:S.users.filter(u=>u.id!==S.me.id).map(u=>[u.id,u.name,u.role])},{n:'after',l:'After creating',full:1,opts:[['chat','Open the group chat'],['call','Start a voice call now'],['meeting','Schedule a meeting']]}],submit:'Create group',
+  onSubmit:async d=>{const ids=d.invite_ids||[],r=await api('/calls','POST',{title:d.title,invite_ids:ids});closeModal();await refresh();go('#/chats/'+r.id);if(d.after==='call')joinCall(r.id,true);else if(d.after==='meeting')setTimeout(()=>meetingForm(null,{room:r.id,name:d.title,members:ids}),500)}})}
+function newMenu(e){pop(`<button onclick="hidePop();groupForm()">${ic('users',17)} New group</button><button onclick="hidePop();meetingForm()">${ic('cal',17)} New meeting</button>${isMgr()?`<button onclick="hidePop();teamForm()">${ic('plus',17)} New team</button>`:''}`,e)}
+const grpMgr=()=>S.rinfo?.kind==='call'&&(S.rinfo.owner===S.me.id||isAdm());
+function addGroupMembers(){const cur=new Set(S.rinfo.members);formModal({title:'Add members',fields:[{n:'user_ids',l:'People',full:1,list:S.users.filter(u=>!cur.has(u.id)).map(u=>[u.id,u.name,u.role])}],submit:'Add',onSubmit:async d=>{await api(`/groups/${S.room}/members`,'POST',{user_ids:d.user_ids||[]});closeModal();await refresh();openRoom(S.room)}})}
+async function removeMember(uid){if(!confirm('Remove '+uname(uid)+' from the group?'))return;try{await api(`/groups/${S.room}/members/${uid}`,'DELETE');await refresh();openRoom(S.room)}catch(e){toast(e.message)}}
+async function leaveGroup(){if(!confirm('Leave this group?'))return;try{await api(`/groups/${S.room}/members/${S.me.id}`,'DELETE');await refresh();go('#/chats')}catch(e){toast(e.message)}}
+function renameGroup(){formModal({title:'Rename group',fields:[{n:'title',l:'Group name',v:S.rinfo.name,req:1,full:1}],onSubmit:async d=>{await api('/groups/'+S.room,'PATCH',d);closeModal();await refresh();openRoom(S.room)}})}
 pages.teams=async()=>{await refresh();
   view(`<div class="page"><div class="ph2"><h1 class="grow">Teams</h1>${isMgr()?`<button class="pri" onclick="teamForm()">${ic('plus',16)} New team</button>`:''}</div><div class="cards">${S.teams.map(t=>`<div class="card"><div class="row"><h3 class="grow">${esc(t.name)}</h3><span class="tag">${esc(t.department)}</span></div><p class="mut" style="margin:6px 0">${t.members.length} members · led by ${esc(uname(t.owner))}</p>${t.description?`<p>${esc(t.description)}</p>`:''}${t.spaces.length?`<p class="mut" style="margin:4px 0">Spaces: ${t.spaces.map(s=>`<a href="#/chats/${s.id}">${esc(s.name)}</a>`).join(', ')}</p>`:''}<div class="row" style="margin-top:10px"><button class="pri sm" onclick="go('#/chats/${t.room}')">Open chat</button><button class="sm" onclick="teamManage('${t.id}')">Members</button><button class="sm" onclick="spaceForm('${t.id}')">New space</button>${t.owner===S.me.id||isAdm()?`<button class="sm" onclick="teamEdit('${t.id}')">Edit</button>`:`<button class="sm" onclick="leaveTeam('${t.id}')">Leave</button>`}</div></div>`).join('')||`<p class="mut">${isMgr()?'No teams yet. Create one for a department.':'You are not in a team yet. A manager can add you.'}</p>`}</div></div>`)};
 function teamForm(){formModal({title:'Create a team',intro:'You become the team owner.',fields:[{n:'name',l:'Team name',req:1},{n:'department',l:'Department',req:1},{n:'description',l:'Purpose',t:'area',full:1},{n:'member_ids',l:'Members',full:1,list:S.users.filter(u=>u.id!==S.me.id).map(u=>[u.id,u.name,u.role])}],submit:'Create team',
@@ -273,7 +305,7 @@ pages.profile=async()=>{const m=S.me;
 function newRecovery(){formModal({title:'Generate a recovery key',intro:'Confirm with your current password. You will download a new credential file.',fields:[{n:'current',l:'Current password',t:'password',req:1,full:1}],submit:'Generate key',
   onSubmit:async d=>{const r=await api('/me/recovery-key','POST',d);await refresh();S.me.recovery_issued=Math.floor(Date.now()/1000);credsModal(r.credentials_file,{title:'New recovery key',intro:'Your previous key no longer works. Keep this file private.'});if(S.sec==='profile')pages.profile()}})}
 /* ================= ADMIN PAGES ================= */
-const adminTabs=a=>`<div class="ph2"><h1 class="grow">Admin</h1></div><div class="tabs">${[['dashboard','Overview'],['employees','Employees'],['teams','Teams'],['meetings','Meetings'],['workspace','Workspace'],['audit','Activity log']].map(([k,l])=>`<button class="${a===k?'on':''}" onclick="go('#/admin/${k}')">${l}</button>`).join('')}</div>`;
+const adminTabs=a=>`<div class="ph2"><h1 class="grow">Admin</h1></div><div class="tabs">${[['dashboard','Overview'],['employees','Employees'],['teams','Teams'],['meetings','Meetings'],['calls','Calls'],['workspace','Workspace'],['system','System'],['audit','Activity log']].map(([k,l])=>`<button class="${a===k?'on':''}" onclick="go('#/admin/${k}')">${l}</button>`).join('')}</div>`;
 pages['admin/dashboard']=async()=>{const s=await api('/admin/stats'),mx=Math.max(1,...s.days.map(d=>d.n));
   const T=(i,n,l)=>`<div class="card stat"><i>${ic(i,22)}</i><div><b>${n}</b><span>${l}</span></div></div>`;
   view(`<div class="page">${adminTabs('dashboard')}<div class="tiles">${T('user',s.active,`Active employees (${s.users} total)`)}${T('book',s.online,'Online now')}${T('users',s.teams,'Teams')}${T('chat',s.spaces,'Open spaces')}${T('video',s.meetings,'Meetings')}${T('send',s.messages,'Messages sent')}</div><div class="card"><h3>Messages in the last 7 days</h3><div class="bars">${s.days.map(d=>`<div>${d.n}<i style="height:${Math.round(d.n/mx*100)}px"></i>${d.d.slice(5)}</div>`).join('')||'<span class="mut">No messages yet</span>'}</div></div></div>`)};
@@ -291,13 +323,20 @@ pages['admin/teams']=async()=>{const ts=await api('/admin/teams');
   view(`<div class="page">${adminTabs('teams')}<div class="bar"><span class="grow"></span><button class="pri" onclick="teamForm()">${ic('plus',16)} New team</button></div><div class="tw"><table><thead><tr><th>Team</th><th>Department</th><th>Owner</th><th>Members</th><th>Spaces</th><th></th></tr></thead><tbody>${ts.map(t=>`<tr><td>${esc(t.name)}</td><td>${esc(t.department)}</td><td>${esc(uname(t.owner))}</td><td>${t.members.length}</td><td>${t.spaces.length}</td><td><button class="sm" onclick="go('#/chats/${t.room}')">Open</button> <button class="sm" onclick="teamManage('${t.id}')">Members</button> <button class="sm" onclick="admDelTeam('${t.id}')">Delete</button></td></tr>`).join('')||'<tr><td colspan=6 class="mut">No teams yet</td></tr>'}</tbody></table></div></div>`)};
 async function admDelTeam(id){if(!confirm('Delete this team and everything in it?'))return;try{await api('/teams/'+id,'DELETE');await refresh();pages['admin/teams']()}catch(e){toast(e.message)}}
 pages['admin/meetings']=async()=>{await refresh();
-  view(`<div class="page">${adminTabs('meetings')}<div class="bar"><span class="grow"></span><button class="pri" onclick="meetingForm()">${ic('plus',16)} New meeting</button></div><div class="tw"><table><thead><tr><th>Title</th><th>When</th><th>Organiser</th><th>Code</th><th></th></tr></thead><tbody>${S.meetings.map(m=>`<tr><td>${esc(m.title)}</td><td>${fmtDT(m.scheduled_at)}</td><td>${esc(uname(m.owner))}</td><td><span class="tag">${m.id}</span></td><td><button class="sm" onclick="meetingForm('${m.id}')">Edit</button> <button class="sm" onclick="delMeeting('${m.id}')">Delete</button></td></tr>`).join('')||'<tr><td colspan=5 class="mut">No meetings</td></tr>'}</tbody></table></div></div>`)};
+  view(`<div class="page">${adminTabs('meetings')}<div class="bar"><span class="grow"></span><button class="pri" onclick="meetingForm()">${ic('plus',16)} New meeting</button></div><div class="tw"><table><thead><tr><th>Title</th><th>When</th><th>Organiser</th><th>Code</th><th></th></tr></thead><tbody>${S.meetings.map(m=>`<tr><td>${esc(m.title)}</td><td>${mWhen(m)}</td><td>${esc(uname(m.owner))}</td><td><span class="tag">${m.id}</span></td><td><button class="sm" onclick="meetingForm('${m.id}')">Edit</button> <button class="sm" onclick="delMeeting('${m.id}')">Delete</button></td></tr>`).join('')||'<tr><td colspan=5 class="mut">No meetings</td></tr>'}</tbody></table></div></div>`)};
 pages['admin/workspace']=async()=>{await refresh();const w=S.ws;
   view(`<div class="page">${adminTabs('workspace')}<div class="cols"><div class="card"><h3>Company</h3><form id="wf"><label>Company name</label><input name="name" value="${esc(w.name)}" required><label>Registration number</label><input value="${esc(w.registration_number)}" readonly><div class="g2"><div><label>Location</label><input name="location" value="${esc(w.location)}" required></div><div><label>Industry</label><input name="industry" value="${esc(w.industry)}"></div></div><label>About</label><input name="description" value="${esc(w.description)}"><div class="err"></div><button class="pri">Save company details</button></form></div>
   <div class="card"><h3>Joining</h3><label>Office code</label><span class="code">${esc(w.office_code)}</span><label class="chk" style="margin-top:16px"><input type="checkbox" ${w.self_register?'checked':''} onchange="selfReg(this.checked)"> Let people create their own account with the office code and secret</label><p><button onclick="rotate()">Generate a new office secret</button></p><p class="mut" style="font-size:13px">The old secret stops working at once. Existing accounts are not affected.</p><div id="sec"></div></div></div></div>`);
   $('#wf').onsubmit=async e=>{e.preventDefault();try{await api('/admin/workspace','PATCH',Object.fromEntries(new FormData(e.target)));await refresh();toast('Saved')}catch(x){e.target.querySelector('.err').textContent=x.message}}};
 async function selfReg(v){try{await api('/admin/workspace','PATCH',{self_register:v});toast(v?'Self-registration on':'Self-registration off')}catch(e){toast(e.message)}}
 async function rotate(){if(!confirm('Replace the current office secret?'))return;const d=await api('/admin/rotate-secret','POST');$('#sec').innerHTML=`<p>New secret (shown once):</p><span class="code">${esc(d.secret)}</span>`}
+pages['admin/calls']=async()=>{const rs=await api('/admin/calls');
+  view(`<div class="page">${adminTabs('calls')}<div class="tw"><table><thead><tr><th>Call</th><th>Type</th><th>Started</th><th>Duration</th><th>People</th><th>Peak</th><th>Started by</th></tr></thead><tbody>${rs.map(c=>`<tr><td>${esc(c.title)}</td><td><span class="tag">${c.mode==='video'?'Meeting':'Voice'}</span> <small class="mut">${esc(c.kind)}</small></td><td class="mut">${fmtTs(c.started)}</td><td>${c.ended?durS(c.ended-c.started):'<span class="tag ok">Live</span>'}</td><td>${c.people}</td><td>${c.peak}</td><td>${esc(c.host||'')}</td></tr>`).join('')||'<tr><td colspan=7 class="mut">No calls yet</td></tr>'}</tbody></table></div></div>`)};
+pages['admin/system']=async()=>{const y=await api('/admin/system'),T=(i,n,l)=>`<div class="card stat"><i>${ic(i,22)}</i><div><b>${n}</b><span>${l}</span></div></div>`,pct=Math.min(100,Math.round(y.storage_mb/y.quota_mb*100));
+  view(`<div class="page">${adminTabs('system')}<div class="tiles">${T('user',y.online,'People online')}${T('phone',y.live_calls,`Live calls (${y.live_participants} people)`)}${T('video',y.calls_total,`Calls held (${y.call_minutes} min)`)}${T('grid',y.db_mb+' MB','Database size')}${T('clip',y.files,'Shared files')}${T('shield','v'+y.version,'Up '+durS(y.uptime_s))}</div>
+  <div class="cols"><div class="card"><h3>File storage</h3><p class="mut" style="margin:4px 0 10px">${y.storage_mb} MB used of ${y.quota_mb} MB for this workspace</p><div style="height:10px;background:#e4e8ef;border-radius:6px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${pct>85?'var(--bad)':'var(--ac)'}"></div></div></div>
+  <div class="card"><h3>Data export</h3><p class="mut" style="margin:4px 0 10px">Download employees (without passwords or keys), teams, meetings and call history as JSON.</p><button class="pri" onclick="exportData()">${ic('down',16)} Export workspace data</button></div></div></div>`)};
+async function exportData(){const d=await api('/admin/export'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d,null,2)],{type:'application/json'}));a.download='workspace-export.json';a.click()}
 pages['admin/audit']=async()=>{S.aud=await api('/admin/audit');
   view(`<div class="page">${adminTabs('audit')}<div class="bar"><input id="aq" placeholder="Filter activity" oninput="drawAud()"></div><div class="tw"><table><thead><tr><th>When</th><th>Who</th><th>What</th></tr></thead><tbody id="atb"></tbody></table></div></div>`);drawAud()};
 function drawAud(){const q=$('#aq').value.toLowerCase();$('#atb').innerHTML=S.aud.filter(a=>(a.actor+a.action).toLowerCase().includes(q)).map(a=>`<tr><td class="mut">${fmtTs(a.ts)}</td><td>${esc(a.actor)}</td><td>${esc(a.action)}</td></tr>`).join('')||'<tr><td colspan=3 class="mut">No activity</td></tr>'}
@@ -307,7 +346,7 @@ async function openRoom(id){
   try{const r=await api('/rooms/'+id),d=await api(`/rooms/${id}/messages`);
     S.msgs=d.messages;S.peerRead=d.peer_read;S.more=d.messages.length>=50;S.room=id;S.replyTo=null;S.up=[];
     const dm=r.kind==='dm'?r.members.find(x=>x!==S.me.id):null,team=S.teams.find(t=>t.id===r.team_id);
-    S.rinfo={id,kind:r.kind,dm,team:team?.id,owner:r.owner_id,name:r.kind==='dm'?uname(dm):r.title,desc:r.description,expires:r.expires,sched:r.scheduled_at,members:r.members};
+    S.rinfo={id,kind:r.kind,dm,team:team?.id,owner:r.owner_id,name:r.kind==='dm'?uname(dm):r.title,desc:r.description,expires:r.expires,sched:r.scheduled_at,members:r.members,rm:r};
     $('#view').className='chatv';
     $('#view').innerHTML=`<div class="cmain" id="cmain"><div class="drop" id="drop">Drop files to send (up to 50 MB each)</div><div class="chd" id="chd"></div><div id="sbw" style="display:none;padding:8px 16px;background:#fff;border-bottom:1px solid var(--line)"><input id="sq" placeholder="Search in this chat" oninput="searchRoom(this.value)"></div><div id="msgs"></div><div class="typ" id="typ"></div><div class="upl" id="upl"></div><div id="rb"></div><div id="emo"></div>
       <div class="comp"><input type="file" id="fi" multiple hidden onchange="attachModal([...this.files]);this.value=''"><button class="ib" title="Attach files" onclick="$('#fi').click()">${ic('clip')}</button><button class="ib" title="Emoji" onclick="toggleEmo()">${ic('smile')}</button><textarea id="txt" rows="1" placeholder="Type a message" maxlength="4000" oninput="grow(this);typingPing()" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}" onpaste="pasteFiles(event)"></textarea><button class="pri send" title="Send" onclick="sendChat()">${ic('send',20)}</button></div></div><div class="cinfo" id="info" hidden></div>`;
@@ -318,21 +357,22 @@ async function openRoom(id){
 const grow=t=>{t.style.height='auto';t.style.height=Math.min(t.scrollHeight,140)+'px'};
 function chatSub(){const r=S.rinfo,n=S.counts[r.id]||0,c=n?` · ${n} in call`:'';
   if(r.kind==='dm'){const u=S.users.find(x=>x.id===r.dm);return(u?.online?'Online':'Offline')+' · '+esc(u?.role||'')+c}
-  return{team:()=>`Team chat · ${S.teams.find(t=>t.id===r.team)?.members.length||''} members`,space:()=>`Temporary space${r.expires?' · closes '+fmtTs(r.expires):''}`,meeting:()=>fmtDT(r.sched)+' · code '+r.id,call:()=>`${r.members.length} people`}[r.kind]()+c}
-function drawChatHead(){if(!S.rinfo||!$('#chd'))return;const r=S.rinfo,n=S.counts[r.id]||0,inCall=callRoom===r.id,u=S.users.find(x=>x.id===r.dm);
-  const callBtn=inCall?`<button class="bad" onclick="leaveCall()">Leave</button>`:r.kind==='meeting'?`<button class="pri" onclick="joinCall('${r.id}',false)">${ic('video',17)} ${n?'Join meeting':'Start meeting'}</button>`:`<button class="pri" onclick="joinCall('${r.id}',true)">${ic('phone',17)} ${n?'Join call':'Voice call'}</button>`;
+  return{team:()=>`Team chat · ${S.teams.find(t=>t.id===r.team)?.members.length||''} members`,space:()=>`Temporary space${r.expires?' · closes '+fmtTs(r.expires):''}`,meeting:()=>mWhen(r.rm)+' · code '+r.id,call:()=>`Group · ${r.members.length} members`}[r.kind]()+c}
+function drawChatHead(){if(!S.rinfo||!$('#chd'))return;const r=S.rinfo,n=S.counts[r.id]||0,inCall=!!(cb&&cb.room===r.id),u=S.users.find(x=>x.id===r.dm),grp=['call','team','space'].includes(r.kind);
+  const callBtn=inCall?`<button class="pri" onclick="openCallWindow('${r.id}')">${ic('min',17)} Return to call</button><button class="bad" onclick="callCmd('leave')">Leave</button>`:r.kind==='meeting'?`<button class="pri" onclick="joinCall('${r.id}',false)">${ic('video',17)} ${n?'Join meeting':'Start meeting'}</button>`:`<button class="pri" onclick="joinCall('${r.id}',${n?'false':'true'})">${ic('phone',17)} ${n?'Join call':'Voice call'}</button>${grp?`<button onclick="meetFromRoom()">${ic('video',17)} Meeting</button>`:''}`;
   $('#chd').innerHTML=`<button class="ib back" onclick="go('#/chats')">${ic('back')}</button>${r.kind==='dm'?av(r.name,r.dm,42,u?.online):gav(r.name,r.id,42)}<div class="grow"><b>${esc(r.name)}</b><br><small class="mut trunc" style="display:block">${chatSub()}</small></div>${callBtn}<button class="ib" title="Search" onclick="toggleSearch()">${ic('search')}</button><button class="ib" title="Info" onclick="toggleInfo()">${ic('info')}</button><button class="ib pb" onclick="chatMenu(event)">${ic('more')}</button>`}
 function toggleSearch(){const w=$('#sbw');w.style.display=w.style.display==='none'?'block':'none';if(w.style.display==='block')$('#sq').focus();else{$('#sq').value='';searchRoom('')}}
 function canClearAll(){const r=S.rinfo,t=S.teams.find(x=>x.id===r.team);return r.kind!=='dm'&&(isAdm()||r.owner===S.me.id||t?.owner===S.me.id)}
-function chatMenu(e){const r=S.rinfo;pop(`<button onclick="toggleInfo()">${ic('info',17)} Chat info</button>${r.kind==='meeting'?`<button onclick="copy(location.origin+'/dashboard#/chats/${r.id}')">${ic('copy',17)} Copy invite link</button>`:''}${r.kind==='team'?`<button onclick="teamManage('${r.team}')">${ic('users',17)} Members</button><button onclick="spaceForm('${r.team}')">${ic('plus',17)} New space</button>`:''}${r.kind==='space'&&(r.owner===S.me.id||isAdm())?`<button onclick="closeSpace('${r.id}')">${ic('x',17)} Close space</button>`:''}<button onclick="clearChat()">${ic('trash',17)} Clear chat</button>`,e)}
+function chatMenu(e){const r=S.rinfo;pop(`<button onclick="toggleInfo()">${ic('info',17)} Chat info</button>${['call','team','space'].includes(r.kind)?`<button onclick="meetFromRoom()">${ic('cal',17)} Schedule a meeting</button>`:''}${r.kind==='meeting'?`<button onclick="copy(location.origin+'/call/${r.id}')">${ic('copy',17)} Copy invite link</button>`:''}${r.kind==='team'?`<button onclick="teamManage('${r.team}')">${ic('users',17)} Members</button><button onclick="spaceForm('${r.team}')">${ic('plus',17)} New space</button>`:''}${r.kind==='space'&&(r.owner===S.me.id||isAdm())?`<button onclick="closeSpace('${r.id}')">${ic('x',17)} Close space</button>`:''}${r.kind==='call'?`<button onclick="hidePop();leaveGroup()">${ic('out',17)} Leave group</button>`:''}<button onclick="clearChat()">${ic('trash',17)} Clear chat</button>`,e)}
 async function closeSpace(id){hidePop();if(!confirm('Close this space and delete its chat and files?'))return;try{await api('/spaces/'+id,'DELETE');await refresh();go('#/teams')}catch(e){toast(e.message)}}
 function clearChat(){hidePop();modal(`<h2>Clear chat</h2><p class="mut">Choose how to clear <b>${esc(S.rinfo.name)}</b>.</p><div style="display:grid;gap:8px"><button onclick="doClear('me')">Clear for me only<br><small class="mut">Others keep their messages and files.</small></button>${canClearAll()?`<button class="bad" onclick="doClear('all')">Clear for everyone<br><small>Deletes all messages and files permanently.</small></button>`:''}<button onclick="closeModal()">Cancel</button></div>`)}
 async function doClear(scope){try{await api(`/rooms/${S.room}/clear`,'POST',{scope});closeModal();if(scope==='me'){S.msgs=[];S.more=false;S.last[S.room]=undefined;drawMsgs(true);renderPanel()}toast('Chat cleared')}catch(e){toast(e.message)}}
 async function toggleInfo(){hidePop();const i=$('#info');if(!i.hidden){i.hidden=true;return}i.hidden=false;
-  const r=S.rinfo,members=r.kind==='dm'?[S.me.id,r.dm]:r.kind==='team'||r.kind==='space'?(S.teams.find(t=>t.id===r.team)?.members||[]):r.kind==='call'?r.members:[];
+  const r=S.rinfo,members=r.kind==='dm'?[S.me.id,r.dm]:r.kind==='team'||r.kind==='space'?(S.teams.find(t=>t.id===r.team)?.members||[]):r.kind==='call'?r.members:(S.meetings.find(m=>m.id===r.id)?.invitees||[]);
   i.innerHTML='<p class="mut">Loading…</p>';let files=[];try{files=await api(`/rooms/${S.room}/files`)}catch{}
-  i.innerHTML=`<div style="text-align:center">${r.kind==='dm'?av(r.name,r.dm,80):gav(r.name,r.id,80)}<h3 style="margin-top:10px">${esc(r.name)}</h3><small class="mut">${chatSub()}</small></div>${r.desc?`<p>${esc(r.desc)}</p>`:''}
-  ${members.length?`<h3 style="margin:20px 0 6px">Members (${members.length})</h3>${members.map(m=>`<div class="li">${av(uname(m),m,34)}<span class="grow">${esc(uname(m))}<br><small class="mut">${esc(S.users.find(u=>u.id===m)?.role||'')}</small></span></div>`).join('')}`:''}
+  i.innerHTML=`<div style="text-align:center">${r.kind==='dm'?av(r.name,r.dm,80):gav(r.name,r.id,80)}<h3 style="margin-top:10px">${esc(r.name)}</h3><small class="mut">${chatSub()}</small></div>${r.desc?`<p style="white-space:pre-wrap">${esc(r.desc)}</p>`:''}
+  ${grpMgr()?`<div class="row" style="margin-top:12px"><button class="sm" onclick="addGroupMembers()">${ic('adduser',15)} Add members</button><button class="sm" onclick="renameGroup()">Rename</button></div>`:''}
+  ${members.length?`<h3 style="margin:20px 0 6px">${r.kind==='meeting'?'Invited':'Members'} (${members.length})</h3>${members.map(m=>`<div class="li">${av(uname(m),m,34)}<span class="grow">${esc(uname(m))}${m===r.owner?' <span class="tag">Owner</span>':''}<br><small class="mut">${esc(S.users.find(u=>u.id===m)?.role||'')}</small></span>${grpMgr()&&m!==S.me.id?`<button class="ib" title="Remove" onclick="removeMember('${m}')">${ic('x',17)}</button>`:''}</div>`).join('')}`:''}
   <h3 style="margin:20px 0 6px">Files and media (${files.length})</h3>${files.map(f=>`<a class="fdoc" href="/api/files/${f.id}?token=${S.token}" download="${esc(f.name)}"><span class="fi">${ic('file',20)}</span><span class="grow"><b>${esc(f.name)}</b><small>${fmtSize(f.size)} · ${esc(uname(f.user_id))}</small></span></a>`).join('')||'<p class="mut">Nothing shared yet.</p>'}
   <p style="margin-top:18px"><button onclick="clearChat()">${ic('trash',16)} Clear chat</button> <button onclick="$('#info').hidden=true">Close</button></p>`}
 function fileHtml(f){if(!f)return'';const u=`/api/files/${f.id}?token=${S.token}`;
@@ -394,10 +434,10 @@ async function onWS(m){
   if(m.t==='chat'){const g=m.msg;
     if(g.user&&!S.users.some(u=>u.id===g.user))refresh();
     if(!g.system)S.last[m.room]={text:g.text,ts:g.ts,user:g.user,file:!!g.file};
-    if(m.room===S.room){S.msgs.push(g);drawMsgs(true);if(!g.system&&g.user!==S.me.id)markRead()}
+    if(m.room===S.room){S.msgs.push(g);drawMsgs(true);if(!g.system&&g.user!==S.me.id&&!document.hidden)markRead()}
     if(!g.system&&g.user!==S.me.id){
-      if(m.room!==S.room||document.hidden){if(m.room!==S.room)S.unread[m.room]=(S.unread[m.room]||0)+1;
-        if(document.hidden&&window.Notification&&Notification.permission==='granted')new Notification(uname(g.user),{body:g.text?g.text.slice(0,100):'Sent a file'})}}
+      if(m.room!==S.room)S.unread[m.room]=(S.unread[m.room]||0)+1;
+      if(document.hidden&&window.Notification&&Notification.permission==='granted')new Notification(uname(g.user),{body:g.text?g.text.slice(0,100):'Sent a file'})}
     renderPanel();renderRail();if(S.sec==='dashboard')route()}
   else if(m.t==='msg_edit'){const i=S.msgs.findIndex(x=>x.id===m.msg.id);if(i>=0&&m.room===S.room){S.msgs[i]=m.msg;drawMsgs(false)}}
   else if(m.t==='msg_del'){const x=S.msgs.find(x=>x.id===m.id);if(x&&m.room===S.room){x.deleted=true;x.file=null;x.text='';x.reply=null;drawMsgs(false)}}
@@ -405,68 +445,36 @@ async function onWS(m){
   else if(m.t==='read'&&m.room===S.room){S.peerRead=m.last;drawMsgs(false)}
   else if(m.t==='typing'&&m.room===S.room){const t=$('#typ');if(t){t.textContent=uname(m.user)+' is typing…';clearTimeout(onWS.t);onWS.t=setTimeout(()=>t.textContent='',3000)}}
   else if(m.t==='presence'){const u=S.users.find(x=>x.id===m.user);if(u){u.online=m.online;renderPanel();if(S.rinfo)drawChatHead();if(S.sec==='people')drawDir()}}
+  else if(m.t==='refresh'){await refresh()}
+  else if(m.t==='reminder'){const x=m.meeting;notify('Meeting starts soon',`${x.title} · ${mWhen(x)}`,[{label:'Join',pri:1,fn:()=>joinMeeting(x.id)},{label:'Details',fn:()=>{refresh().then(()=>meetingInfo(x.id))}}],90000);refresh()}
   else if(m.t==='call_state'){S.counts[m.room]=m.count;if(m.room===S.room)drawChatHead()}
   else if(m.t==='ring')ringModal(m);
-  else if(m.t==='peers'){sharing=m.sharing||{};for(const p of m.peers)makePC(p)}
-  else if(m.t==='peer_leave')dropPeer(m.user);
-  else if(m.t==='share'){if(m.on)sharing[m.from]=m.sid;else{delete sharing[m.from];rmTile($('#s-'+m.from))}drawNote()}
-  else if(m.t==='sig')await onSig(m);
   else if(m.t==='error')toast(m.msg)}
-function ringModal(m){if(locked||callRoom)return;const vid=m.kind==='meeting';
+function ringModal(m){const vid=m.kind==='meeting';
+  if(cb||locked){notify(uname(m.from)+' is calling',`${m.title} · you are already in a call`,[{label:'Open chat',fn:()=>go('#/chats/'+m.room)}]);return}
   modal(`<div style="text-align:center">${av(uname(m.from),m.from,72)}<h2 style="margin-top:12px">${esc(uname(m.from))} is calling</h2><p class="mut">${vid?'Video meeting':'Voice call'} · ${esc(m.title)}</p><div class="row" style="justify-content:center"><button class="pri" id="acc">${ic(vid?'video':'phone',17)} Join</button><button id="dec">Decline</button></div></div>`);
-  $('#acc').onclick=()=>{closeModal();go('#/chats/'+m.room);joinCall(m.room,false)};$('#dec').onclick=closeModal;setTimeout(()=>{if($('#dec'))closeModal()},30000)}
+  $('#acc').onclick=()=>{closeModal();joinCall(m.room,false)};$('#dec').onclick=closeModal;setTimeout(()=>{if($('#dec'))closeModal()},30000)}
 
-/* ================= CALLS: voice (audio only) and meetings (video); screen share in both ================= */
-async function joinCall(rid,ring){
-  if(callRoom)return toast('Leave your current call first');
-  const video=roomKind(rid)==='meeting';
-  try{local=await navigator.mediaDevices.getUserMedia(video?{audio:true,video:true}:{audio:true})}
-  catch{try{local=await navigator.mediaDevices.getUserMedia({audio:true});if(video)toast('Camera unavailable. Joining with audio only')}catch{return toast('Allow microphone access to join (HTTPS or localhost required)')}}
-  callRoom=rid;callMode=video?'video':'voice';muted=camOff=false;sharing={};callStart=Date.now();
-  $('#stage').classList.add('on');$('#st-t').textContent=(video?'Video meeting · ':'Voice call · ')+roomLabel(rid);clearInterval(callT);callT=setInterval(()=>{const s=Math.floor((Date.now()-callStart)/1000);$('#st-timer').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')},1000);
-  const t=peerTile('me','You');if(local.getVideoTracks().length){t.querySelector('video').srcObject=local;t.classList.add('hasvid')}
-  drawCtl();drawNote();if(S.rinfo)drawChatHead();send({t:'call_join',room:rid});
-  if(ring){const to=rid.startsWith('dm_')?rid.slice(3).split('_'):(S.calls.find(c=>c.id===rid)?.members||S.teams.find(t=>t.room===rid||t.spaces.some(s=>s.id===rid))?.members||[]);send({t:'ring',room:rid,to:to.filter(x=>x!==S.me.id)})}}
-function peerTile(id,label){let t=$('#p-'+id);if(!t){t=document.createElement('div');t.className='pt';t.id='p-'+id;t.innerHTML=`<div class="pav">${av(label,id==='me'?S.me.id:id,64)}</div><video autoplay playsinline muted></video><audio autoplay></audio><span class="nm"></span>`;$('#tiles').append(t)}
-  t.querySelector('.nm').textContent=label;return t}
-function rmTile(t){if(!t)return;clearInterval(t._t);try{t._ac?.close()}catch{}t.remove()}
-function watch(stream,el){try{const ac=new(window.AudioContext||webkitAudioContext)(),src=ac.createMediaStreamSource(stream),an=ac.createAnalyser();an.fftSize=256;src.connect(an);const d=new Uint8Array(an.frequencyBinCount);el._ac=ac;el._t=setInterval(()=>{an.getByteFrequencyData(d);el.classList.toggle('talk',d.reduce((a,b)=>a+b,0)/d.length>14)},200)}catch{}}
-function onTrack(id,e){const s=e.streams[0]||new MediaStream([e.track]);
-  if(e.track.kind==='video'&&sharing[id]===s.id){let t=$('#s-'+id);if(!t){t=document.createElement('div');t.className='pt present';t.id='s-'+id;t.innerHTML='<video autoplay playsinline muted></video><span class="nm"></span>';t.ondblclick=()=>t.requestFullscreen?.();$('#tiles').prepend(t)}
-    t.querySelector('video').srcObject=s;t.querySelector('.nm').textContent=uname(id)+' is presenting';return}
-  const t=peerTile(id,uname(id));t.querySelector('audio').srcObject=s;
-  if(e.track.kind==='video'){t.querySelector('video').srcObject=s;t.classList.add('hasvid');e.track.onended=()=>t.classList.remove('hasvid')}else if(!t._t)watch(s,t)}
-function makePC(id){
-  if(pcs[id])return pcs[id];const pc=new RTCPeerConnection(ICE);pc.polite=S.me.id>id;pc.making=false;pcs[id]=pc;
-  pc.onnegotiationneeded=async()=>{try{pc.making=true;await pc.setLocalDescription();send({t:'sig',room:callRoom,to:id,data:{sdp:pc.localDescription}})}catch(e){console.warn(e)}finally{pc.making=false}};
-  pc.onicecandidate=e=>e.candidate&&send({t:'sig',room:callRoom,to:id,data:{ice:e.candidate}});
-  pc.ontrack=e=>onTrack(id,e);pc.onconnectionstatechange=()=>{if(pc.connectionState==='failed')toast('Connection to '+uname(id)+' failed')};
-  local.getTracks().forEach(t=>pc.addTrack(t,local));
-  if(screen)ss[id]=pc.addTrack(screen.getVideoTracks()[0],screen);
-  return pc}
-async function onSig(m){if(!callRoom||m.room!==callRoom)return;const pc=makePC(m.from),d=m.data;
-  try{if(d.sdp){const clash=d.sdp.type==='offer'&&(pc.making||pc.signalingState!=='stable');pc.ignore=!pc.polite&&clash;if(pc.ignore)return;
-      await pc.setRemoteDescription(d.sdp);if(d.sdp.type==='offer'){await pc.setLocalDescription();send({t:'sig',room:callRoom,to:m.from,data:{sdp:pc.localDescription}})}}
-    else if(d.ice){try{await pc.addIceCandidate(d.ice)}catch(e){if(!pc.ignore)throw e}}}catch(e){console.warn('signal',e)}}
-function dropPeer(id){pcs[id]?.close();delete pcs[id];delete ss[id];delete sharing[id];rmTile($('#p-'+id));rmTile($('#s-'+id));drawNote()}
-function leaveCall(){if(!callRoom)return;stopShare(true);send({t:'call_leave',room:callRoom});Object.keys(pcs).forEach(dropPeer);rmTile($('#p-me'));local?.getTracks().forEach(t=>t.stop());local=null;callRoom=null;sharing={};clearInterval(callT);$('#tiles').innerHTML='';$('#stage').classList.remove('on');if(S.rinfo)drawChatHead()}
-async function startShare(){
-  try{screen=await navigator.mediaDevices.getDisplayMedia({video:true,audio:false})}catch{return}
-  const tr=screen.getVideoTracks()[0];send({t:'share',room:callRoom,on:true,sid:screen.id});            // announce first so peers can tell it is a screen
-  for(const[id,pc]of Object.entries(pcs))ss[id]=pc.addTrack(tr,screen);
-  tr.onended=()=>stopShare();sharing[S.me.id]=screen.id;
-  let t=$('#s-me');if(!t){t=document.createElement('div');t.className='pt present';t.id='s-me';t.innerHTML='<video autoplay playsinline muted></video><span class="nm">You are sharing your screen</span>';$('#tiles').prepend(t)}t.querySelector('video').srcObject=screen;drawCtl();drawNote()}
-function stopShare(quiet){if(!screen)return;const s=screen;screen=null;
-  for(const[id,sender]of Object.entries(ss)){try{if(pcs[id]&&pcs[id].signalingState!=='closed')pcs[id].removeTrack(sender)}catch{}}ss={};
-  s.getTracks().forEach(t=>{t.onended=null;t.stop()});delete sharing[S.me.id];rmTile($('#s-me'));
-  if(!quiet){send({t:'share',room:callRoom,on:false,sid:s.id});drawCtl();drawNote()}}
-function drawNote(){const n=$('#st-note');if(!n)return;const others=Object.keys(sharing).filter(k=>k!==S.me.id);
-  if(screen){n.textContent='You are sharing your screen';n.className='note me'}else if(others.length){n.textContent=uname(others[0])+' is presenting';n.className='note'}else{n.textContent='';n.className='note'}}
-function drawCtl(){const hasCam=callMode==='video'&&local?.getVideoTracks().length;
-  $('#ctl').innerHTML=`<button class="${muted?'off':''}" onclick="toggleMedia('a')">${ic(muted?'micoff':'mic',18)} ${muted?'Unmute':'Mute'}</button>${hasCam?`<button class="${camOff?'off':''}" onclick="toggleMedia('v')">${ic(camOff?'camoff':'cam',18)} ${camOff?'Camera on':'Camera off'}</button>`:''}
-  ${screen?`<button class="bad" onclick="stopShare()">${ic('screen',18)} Stop sharing</button>`:`<button onclick="startShare()">${ic('screen',18)} Share screen</button>`}<button onclick="go('#/chats/'+callRoom)">${ic('chat',18)} Chat</button><button class="bad" onclick="leaveCall()">${ic('phone',18)} Leave</button>`}
-function toggleMedia(k){if(k==='a'){muted=!muted;local.getAudioTracks().forEach(t=>t.enabled=!muted)}else{camOff=!camOff;local.getVideoTracks().forEach(t=>t.enabled=!camOff)}drawCtl()}
-addEventListener('beforeunload',()=>leaveCall());
+/* ================= CALLS open in their own full-screen page (/call/<id>); this tab keeps chatting ================= */
+const bc=window.BroadcastChannel?new BroadcastChannel('meetly-call'):{postMessage(){},set onmessage(f){}};   // very old browsers: windows just do not talk to each other
+let cb=null;                // cb = live call reported by the call window
+const clock=ms=>{const s=Math.max(0,Math.floor(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60);return(h?h+':'+String(m).padStart(2,'0'):String(m).padStart(2,'0'))+':'+String(s%60).padStart(2,'0')};
+bc.onmessage=e=>{const m=e.data||{};if(m.k==='state'&&m.live){const first=!cb||cb.room!==m.room||cb.muted!==m.muted;cb={...m,seen:Date.now()};if(first)drawMini()}else if(m.k==='ended'){cb=null;drawMini()}};
+setInterval(()=>{if(cb&&Date.now()-cb.seen>7000){cb=null;drawMini()}else if(cb){const t=$('#mt');if(t)t.textContent=clock(Date.now()-cb.since)}},1000);
+const callCmd=cmd=>bc.postMessage({k:'cmd',cmd});
+const leaveCall=()=>callCmd('leave');
+function drawMini(){const m=$('#mini');if(!m)return;
+  if(!cb){m.hidden=true;m.innerHTML=''}else{m.hidden=false;m.innerHTML=`<span class="dotl"></span><span><b class="trunc" style="display:block;max-width:170px">${esc(cb.title)}</b><small id="mt" style="color:#9aa6c4">${clock(Date.now()-cb.since)}</small></span><button class="ib mb ${cb.muted?'off':''}" title="Mute or unmute" onclick="callCmd('mute')">${ic(cb.muted?'micoff':'mic',18)}</button><button class="ib mb" title="Return to the call window" onclick="openCallWindow('${cb.room}')">${ic('min',18)}</button><button class="ib mb bad" title="Leave call" onclick="callCmd('leave')">${ic('phone',18)}</button>`}
+  if(S.rinfo)drawChatHead()}
+function openCallWindow(rid,ring){
+  const url='/call/'+rid+(ring?'?ring=1':'');let w=null;try{w=window.open('','meetly-call')}catch{}
+  if(!w){toast('Popup blocked. Opening the call in this tab.');location.href=url;return}
+  let path='';try{path=w.location.pathname}catch{}
+  if(!cb||!path.startsWith('/call/'))w.location.href=url;else if(cb.room!==rid)toast('You are already in another call. Leave it first.');
+  try{w.focus()}catch{}}
+function joinCall(rid,ring){openCallWindow(rid,ring)}
+
+
 </script>
 </body>
 </html>

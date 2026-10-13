@@ -1,12 +1,12 @@
 """
-Meetly Workspace v4 - FastAPI + SQLite3 backend (dashboard, calls, files, credential files and account recovery).
+Meetly Workspace v6 - FastAPI + SQLite3 backend (standalone call page, meetings, groups, recovery, ops).
 
     pip install fastapi "uvicorn[standard]" pydantic
     APP_SECRET=<long-random> uvicorn main:app --reload
 
 All state lives in SQLite (WAL mode, foreign keys on). Schema is created on startup.
 """
-import asyncio, base64, csv, hashlib, hmac, io, json, os, re, secrets, sqlite3, time, uuid
+import asyncio, base64, csv, hashlib, hmac, io, json, logging, os, re, secrets, sqlite3, time, uuid
 from contextlib import asynccontextmanager, contextmanager
 from pathlib import Path
 from typing import List, Optional
@@ -20,6 +20,11 @@ DB_PATH = os.environ.get("DB_PATH", str(BASE / "meetly.db"))
 TOKEN_TTL, MAX_CALL, MAX_FAILS, LOCK_SECS = 12 * 3600, 8, 5, 600
 EMAIL_RE = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
 ACCESS = ("admin", "manager", "member")
+QUOTA_MB = int(os.environ.get("WORKSPACE_QUOTA_MB", "2048"))       # per-workspace file storage
+PUBLIC_URL = os.environ.get("PUBLIC_URL", "").rstrip("/")        # e.g. https://meet.example.com (used in invitation links)
+STARTED = int(time.time())
+log = logging.getLogger("meetly")
+logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS meta(k TEXT PRIMARY KEY, v TEXT);
@@ -45,7 +50,8 @@ CREATE TABLE IF NOT EXISTS rooms(
   id TEXT PRIMARY KEY, ws_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
   kind TEXT NOT NULL CHECK(kind IN('dm','call','team','space','meeting')), title TEXT NOT NULL,
   team_id TEXT REFERENCES teams(id) ON DELETE CASCADE, owner_id TEXT, description TEXT DEFAULT '',
-  scheduled_at TEXT, expires INTEGER, created INTEGER NOT NULL);
+  scheduled_at TEXT, expires INTEGER, created INTEGER NOT NULL,
+  starts_at INTEGER, ends_at INTEGER, tz_offset INTEGER DEFAULT 0, reminded INTEGER DEFAULT 0);
 CREATE TABLE IF NOT EXISTS room_members(
   room_id TEXT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE, PRIMARY KEY(room_id,user_id));
@@ -65,6 +71,15 @@ CREATE TABLE IF NOT EXISTS hidden(message_id INTEGER NOT NULL, user_id TEXT NOT 
 CREATE TABLE IF NOT EXISTS reactions(
   message_id INTEGER NOT NULL REFERENCES messages(id) ON DELETE CASCADE, user_id TEXT NOT NULL, emoji TEXT NOT NULL,
   PRIMARY KEY(message_id,user_id));
+CREATE TABLE IF NOT EXISTS meeting_invitees(
+  meeting_id TEXT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE, PRIMARY KEY(meeting_id,user_id));
+CREATE TABLE IF NOT EXISTS call_sessions(
+  id INTEGER PRIMARY KEY AUTOINCREMENT, room_id TEXT NOT NULL, ws_id TEXT NOT NULL, title TEXT, kind TEXT,
+  started INTEGER NOT NULL, ended INTEGER, mode TEXT, started_by TEXT, peak INTEGER DEFAULT 1);
+CREATE TABLE IF NOT EXISTS call_participants(
+  session_id INTEGER NOT NULL, user_id TEXT NOT NULL, joined INTEGER NOT NULL, left INTEGER, PRIMARY KEY(session_id,user_id,joined));
+CREATE INDEX IF NOT EXISTS ix_sess_ws ON call_sessions(ws_id, started);
 CREATE INDEX IF NOT EXISTS ix_users_ws ON users(ws_id);
 CREATE INDEX IF NOT EXISTS ix_rooms_ws ON rooms(ws_id, kind);
 """
@@ -103,7 +118,9 @@ with db() as _c:
     for ddl in ("ALTER TABLE messages ADD COLUMN reply_to INTEGER", "ALTER TABLE messages ADD COLUMN file_id TEXT",
                 "ALTER TABLE reads ADD COLUMN cleared_id INTEGER DEFAULT 0",
                 "ALTER TABLE users ADD COLUMN recovery_hash TEXT", "ALTER TABLE users ADD COLUMN recovery_issued INTEGER",
-                "ALTER TABLE users ADD COLUMN rec_fails INTEGER DEFAULT 0", "ALTER TABLE users ADD COLUMN rec_locked INTEGER DEFAULT 0"):      # upgrade databases created by v2
+                "ALTER TABLE users ADD COLUMN rec_fails INTEGER DEFAULT 0", "ALTER TABLE users ADD COLUMN rec_locked INTEGER DEFAULT 0",
+                "ALTER TABLE rooms ADD COLUMN starts_at INTEGER", "ALTER TABLE rooms ADD COLUMN ends_at INTEGER",
+                "ALTER TABLE rooms ADD COLUMN tz_offset INTEGER DEFAULT 0", "ALTER TABLE rooms ADD COLUMN reminded INTEGER DEFAULT 0"):      # upgrade databases created by v2
         try:
             _c.execute(ddl)
         except sqlite3.OperationalError:
@@ -317,13 +334,17 @@ class SpaceIn(BaseModel):
 
 class MeetingIn(BaseModel):
     title: str = Field(min_length=2, max_length=80)
-    scheduled_at: Optional[str] = Field(None, max_length=40)
-    description: str = Field("", max_length=300)
+    description: str = Field("", max_length=1000)
+    starts_at: Optional[int] = None                       # epoch seconds (UTC); empty = start now
+    duration_min: int = Field(60, ge=5, le=720)
+    tz_offset: int = Field(0, ge=-840, le=840)           # organiser's UTC offset in minutes, used to word the invitation
+    invitee_ids: List[str] = Field([], max_length=100)
+    context_room: Optional[str] = None                    # group/team chat the meeting is created from
 
 
 class CallIn(BaseModel):
     title: str = Field("Group call", min_length=2, max_length=80)
-    invite_ids: List[str] = Field(min_length=2, max_length=MAX_CALL - 1)
+    invite_ids: List[str] = Field(min_length=2, max_length=49)
 
 
 class MsgIn(BaseModel):
@@ -446,11 +467,109 @@ def team_view(c, t) -> dict:
             "owner": t["owner_id"], "room": t["room_id"], "members": team_ids(c, t["id"]), "spaces": sp}
 
 
-def meeting_view(r) -> dict:
-    return {"id": r["id"], "title": r["title"], "description": r["description"], "scheduled_at": r["scheduled_at"], "owner": r["owner_id"], "created": r["created"]}
+def meeting_view(r, inv=()) -> dict:
+    return {"id": r["id"], "title": r["title"], "description": r["description"], "scheduled_at": r["scheduled_at"], "starts_at": r.get("starts_at"),
+            "ends_at": r.get("ends_at"), "tz_offset": r.get("tz_offset") or 0, "owner": r["owner_id"], "created": r["created"], "invitees": list(inv)}
 
 
-# --------------------------------------------------------------------------- app
+def fmt_dur(mins: int) -> str:
+    h, m = divmod(int(mins), 60)
+    return f"{h} hr {m} min" if h and m else f"{h} hr" if h else f"{m} min"
+
+
+def fmt_call(secs: int) -> str:
+    if secs < 60:
+        return f"{secs} s"
+    m, s_ = divmod(secs, 60)
+    return fmt_dur(m) if m >= 60 else f"{m} min {s_} s"
+
+
+def gmt_label(off: int) -> str:
+    return f"GMT{'+' if off >= 0 else '-'}{abs(off) // 60}:{abs(off) % 60:02d}"
+
+
+def join_ref(rid: str, base: str = "") -> str:
+    return f"{base}/call/{rid}" if base else f"open Meetings in Meetly and join code {rid}"
+
+
+def meeting_text(kind: str, m: dict, organizer: dict, names: list, base: str) -> str:
+    """Plain-text invitation shown in chat: time, duration, agenda, people, link."""
+    head = {"invite": "📅 Meeting invitation", "update": "✏️ Meeting updated", "cancel": "❌ Meeting cancelled", "remind": "⏰ Meeting starting soon"}[kind]
+    lines = [head, f"Title: {m['title']}"]
+    if m.get("starts_at"):
+        off = m.get("tz_offset") or 0
+        st = time.gmtime(m["starts_at"] + off * 60)
+        t12 = lambda g: time.strftime("%I:%M %p", g).lstrip("0")
+        lines.append("Date: " + time.strftime("%a, %d %b %Y", st))
+        if m.get("ends_at"):
+            en = time.gmtime(m["ends_at"] + off * 60)
+            lines.append(f"Time: {t12(st)} - {t12(en)} ({gmt_label(off)})")
+            lines.append(f"Duration: {fmt_dur((m['ends_at'] - m['starts_at']) // 60)}")
+        else:
+            lines.append(f"Time: {t12(st)} ({gmt_label(off)})")
+    else:
+        lines.append("When: Starting now")
+    agenda = [x.strip() for x in (m.get("description") or "").splitlines() if x.strip()]
+    if agenda and kind != "cancel":
+        lines += ["Agenda:"] + [f"  - {x}" for x in agenda]
+    if kind != "cancel":
+        lines.append(f"People ({len(names)}): " + ", ".join(names))
+    lines.append(f"Organizer: {organizer['name']}")
+    if kind != "cancel":
+        lines.append("Join: " + join_ref(m["id"], base))
+    return "\n".join(lines)
+
+
+def members_of(c, r) -> list:
+    if r["kind"] == "meeting":
+        return [x["user_id"] for x in rows(c, "SELECT user_id FROM meeting_invitees WHERE meeting_id=?", r["id"])]
+    if r["team_id"]:
+        return team_ids(c, r["team_id"])
+    return [x["user_id"] for x in rows(c, "SELECT user_id FROM room_members WHERE room_id=?", r["id"])]
+
+
+def is_host(c, u, r) -> bool:
+    if u["access"] == "admin" or r["owner_id"] == u["id"]:
+        return True
+    t = row(c, "SELECT owner_id FROM teams WHERE id=?", r["team_id"]) if r["team_id"] else None
+    return bool(t and t["owner_id"] == u["id"])
+
+
+def post_to_dm(c, sender_id, ws_id, to_id, text, system=False):
+    rid = "dm_" + "_".join(sorted([sender_id, to_id]))
+    if not row(c, "SELECT 1 x FROM rooms WHERE id=?", rid):
+        new_room(c, ws_id, "dm", "Direct chat", [sender_id, to_id], rid=rid)
+    return rid, add_msg(c, rid, None if system else sender_id, text, system=system)
+
+
+def announce(c, kind, m, organizer, sender, invitee_ids, base, context_room=None) -> list:
+    """Write the invitation into chats. Posts once in the group chat it was created from, DMs everyone else."""
+    by_id = {x["id"]: x["name"] for x in rows(c, f"SELECT id,name FROM users WHERE id IN ({','.join('?' * len(invitee_ids))})", *invitee_ids)} if invitee_ids else {}
+    names = [organizer["name"]] + [by_id[i] for i in invitee_ids if i in by_id]
+    text, out, covered = meeting_text(kind, m, organizer, names, base), [], set()
+    cr = row(c, "SELECT * FROM rooms WHERE id=?", context_room) if context_room else None
+    if cr and can_access(c, sender, cr) and cr["kind"] != "meeting":
+        out.append((cr["id"], add_msg(c, cr["id"], sender["id"], text)))
+        covered = set(members_of(c, cr))
+    for i in invitee_ids:
+        if i != sender["id"] and i not in covered:
+            out.append(post_to_dm(c, sender["id"], sender["ws_id"], i, text))
+    return out
+
+
+async def deliver(posted):
+    with db() as c:
+        for rid, msg in posted:
+            r = row(c, "SELECT * FROM rooms WHERE id=?", rid)
+            if r:
+                await to_many(audience(c, r), {"t": "chat", "room": rid, "msg": msg})
+
+
+def base_url(request=None) -> str:
+    return PUBLIC_URL or (str(request.base_url).rstrip("/") if request else "")
+
+
+# --------------------------------------------------------------------------- app# --------------------------------------------------------------------------- app
 async def purge_loop():
     while True:
         with db() as c:
@@ -459,11 +578,40 @@ async def purge_loop():
         await asyncio.sleep(3600)
 
 
+async def reminder_loop():
+    """Every 30 s: remind invitees 10 minutes before a scheduled meeting (chat notice + live pop-up)."""
+    while True:
+        try:
+            posted, notes = [], []
+            with db() as c:
+                for m in rows(c, "SELECT * FROM rooms WHERE kind='meeting' AND starts_at IS NOT NULL AND reminded=0 AND starts_at BETWEEN ? AND ?", now() - 60, now() + 600):
+                    c.execute("UPDATE rooms SET reminded=1 WHERE id=?", (m["id"],))
+                    ids = [x["user_id"] for x in rows(c, "SELECT user_id FROM meeting_invitees WHERE meeting_id=?", m["id"])]
+                    org = row(c, "SELECT * FROM users WHERE id=?", m["owner_id"]) or {"name": "Organizer"}
+                    names = [x["name"] for x in rows(c, f"SELECT name FROM users WHERE id IN ({','.join('?' * len(ids))})", *ids)] if ids else []
+                    text = meeting_text("remind", m, org, names, PUBLIC_URL)
+                    posted += [post_to_dm(c, m["owner_id"], m["ws_id"], i, text, system=True) for i in ids if i != m["owner_id"]]
+                    notes.append((ids, meeting_view(m, ids)))
+            await deliver(posted)
+            for ids, mv in notes:
+                await to_many(ids, {"t": "reminder", "meeting": mv})
+        except Exception as e:
+            log.error(json.dumps({"event": "reminder_error", "error": str(e)}))
+        await asyncio.sleep(30)
+
+
 @asynccontextmanager
 async def lifespan(_):
-    task = asyncio.create_task(purge_loop())
+    tasks = [asyncio.create_task(purge_loop()), asyncio.create_task(reminder_loop())]
     yield
-    task.cancel()
+    for t in tasks:
+        t.cancel()
+    for socks in list(conns.values()):                 # graceful shutdown: tell clients to reconnect
+        for s_ in list(socks):
+            try:
+                await s_.close(code=1012)
+            except Exception:
+                pass
 
 
 app = FastAPI(title="Meetly Workspace", docs_url="/api/docs", redoc_url=None, lifespan=lifespan)
@@ -471,9 +619,12 @@ app = FastAPI(title="Meetly Workspace", docs_url="/api/docs", redoc_url=None, li
 
 @app.middleware("http")
 async def headers(request: Request, call_next):
+    rid, t0 = uuid.uuid4().hex[:8], time.time()
     r = await call_next(request)
-    r.headers.update({"X-Content-Type-Options": "nosniff", "X-Frame-Options": "DENY", "Referrer-Policy": "same-origin",
+    r.headers.update({"X-Content-Type-Options": "nosniff", "X-Frame-Options": "DENY", "Referrer-Policy": "same-origin", "X-Request-ID": rid,
                       "Permissions-Policy": "camera=(self), microphone=(self), display-capture=(self)"})
+    if request.url.path.startswith("/api") and request.url.path not in ("/api/health", "/api/ready"):
+        log.info(json.dumps({"id": rid, "method": request.method, "path": request.url.path, "status": r.status_code, "ms": int((time.time() - t0) * 1000)}))
     return r
 
 
@@ -482,9 +633,24 @@ def index():
     return FileResponse(BASE / "index.html")          # sign-in, join, register company
 
 
+@app.get("/call/{rid}")
+def call_page(rid: str):
+    return FileResponse(BASE / "call.html")           # standalone full-screen call and meeting page
+
+
 @app.get("/dashboard")
 def dashboard():
     return FileResponse(BASE / "dashboard.html")      # the whole app after sign-in
+
+
+@app.get("/api/ready")
+def ready():
+    with db() as c:
+        c.execute("SELECT 1")
+    probe = storage.root / ".probe"
+    probe.write_text("ok")
+    probe.unlink()
+    return {"status": "ready"}
 
 
 @app.get("/api/health")
@@ -630,7 +796,10 @@ def bootstrap(u: dict = Depends(auth)):
         else:
             tl = rows(c, "SELECT t.* FROM teams t JOIN team_members m ON m.team_id=t.id WHERE t.ws_id=? AND m.user_id=? ORDER BY t.name", ws["id"], u["id"])
         teams = [team_view(c, t) for t in tl]
-        meetings = [meeting_view(r) for r in rows(c, "SELECT * FROM rooms WHERE ws_id=? AND kind='meeting' ORDER BY created DESC LIMIT 100", ws["id"])]
+        inv_map = {}
+        for x in rows(c, "SELECT i.meeting_id, i.user_id FROM meeting_invitees i JOIN rooms r ON r.id=i.meeting_id WHERE r.ws_id=?", ws["id"]):
+            inv_map.setdefault(x["meeting_id"], []).append(x["user_id"])
+        meetings = [meeting_view(r, inv_map.get(r["id"], [])) for r in rows(c, "SELECT * FROM rooms WHERE ws_id=? AND kind='meeting' ORDER BY COALESCE(starts_at, created) DESC LIMIT 150", ws["id"])]
         calls = [{"id": r["id"], "title": r["title"], "owner": r["owner_id"], "members": [m["user_id"] for m in rows(c, "SELECT user_id FROM room_members WHERE room_id=?", r["id"])]}
                  for r in rows(c, "SELECT r.* FROM rooms r JOIN room_members m ON m.room_id=r.id WHERE r.kind='call' AND m.user_id=? ORDER BY r.created DESC LIMIT 20", u["id"])]
         dms = [r["id"] for r in rows(c, "SELECT r.id FROM rooms r JOIN room_members m ON m.room_id=r.id WHERE r.kind='dm' AND m.user_id=?", u["id"])]
@@ -639,7 +808,7 @@ def bootstrap(u: dict = Depends(auth)):
         if ids:
             q = ",".join("?" * len(ids))
             for r in rows(c, f"""SELECT m.room_id r, COUNT(*) n FROM messages m LEFT JOIN reads x ON x.room_id=m.room_id AND x.user_id=?
-                WHERE m.room_id IN ({q}) AND m.id>MAX(COALESCE(x.last_id,0),COALESCE(x.cleared_id,0)) AND m.user_id!=? AND m.system=0 AND m.deleted=0 GROUP BY m.room_id""", u["id"], u["id"], *ids):
+                WHERE m.room_id IN ({q}) AND m.id>MAX(COALESCE(x.last_id,0),COALESCE(x.cleared_id,0)) AND m.user_id!=? AND m.system=0 AND m.deleted=0 GROUP BY m.room_id""", u["id"], *ids, u["id"]):
                 unread[r["r"]] = r["n"]
             for m in rows(c, f"SELECT * FROM messages WHERE id IN (SELECT MAX(id) FROM messages WHERE room_id IN ({q}) AND deleted=0 GROUP BY room_id)", *ids):
                 last[m["room_id"]] = {"text": m["text"][:80], "ts": m["ts"], "user": m["user_id"], "file": bool(m["file_id"]), "system": bool(m["system"])}
@@ -876,35 +1045,212 @@ def open_dm(other: str, u: dict = Depends(auth)):
     return {"id": rid}
 
 
+def _clean_invitees(c, u, ids):
+    valid = {x["id"] for x in rows(c, "SELECT id FROM users WHERE ws_id=? AND active=1", u["ws_id"])}
+    return [i for i in dict.fromkeys(ids) if i in valid and i != u["id"]]
+
+
 @app.post("/api/meetings", status_code=201)
-def create_meeting(b: MeetingIn, u: dict = Depends(auth)):
+async def create_meeting(b: MeetingIn, request: Request, u: dict = Depends(auth)):
+    if b.starts_at is not None and b.starts_at < now() - 300:
+        raise HTTPException(422, "Pick a start time in the future.")
     with db() as c:
-        rid = new_room(c, u["ws_id"], "meeting", b.title.strip(), rid=uuid.uuid4().hex[:8], owner_id=u["id"],
-                       description=b.description.strip(), scheduled_at=b.scheduled_at or None)
-        audit(c, u, f"Created meeting {b.title.strip()}")
-    return {"id": rid}
+        inv = _clean_invitees(c, u, b.invitee_ids)
+        rid = new_room(c, u["ws_id"], "meeting", b.title.strip(), rid=uuid.uuid4().hex[:8], owner_id=u["id"], description=b.description.strip())
+        c.execute("UPDATE rooms SET starts_at=?, ends_at=?, tz_offset=? WHERE id=?",
+                  (b.starts_at, b.starts_at + b.duration_min * 60 if b.starts_at else None, b.tz_offset, rid))
+        c.executemany("INSERT OR IGNORE INTO meeting_invitees VALUES(?,?)", [(rid, i) for i in [u["id"], *inv]])
+        m = row(c, "SELECT * FROM rooms WHERE id=?", rid)
+        posted = announce(c, "invite", m, u, u, inv, base_url(request), b.context_room)
+        audit(c, u, f"Created meeting {b.title.strip()} with {len(inv)} invited")
+    await deliver(posted)
+    return {"id": rid, "invited": len(inv)}
+
+
+@app.get("/api/meetings/{rid}.ics")
+def meeting_ics(rid: str, request: Request, token: str = "", authorization: str = Header(None)):
+    u = load_user(token or (authorization or "").removeprefix("Bearer ").strip())
+    if not u:
+        raise HTTPException(401, "Session expired. Sign in again.")
+    with db() as c:
+        m = get_room(c, rid, u)
+    if m["kind"] != "meeting" or not m["starts_at"]:
+        raise HTTPException(404, "This meeting has no scheduled time.")
+    z = lambda ts: time.strftime("%Y%m%dT%H%M%SZ", time.gmtime(ts))
+    esc_ = lambda t: t.replace("\\", "\\\\").replace(";", "\\;").replace(",", "\\,").replace("\n", "\\n")
+    link = join_ref(rid, base_url(request))
+    body = "\r\n".join(["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Meetly//Workspace//EN", "BEGIN:VEVENT", f"UID:{rid}@meetly", f"DTSTAMP:{z(now())}",
+                        f"DTSTART:{z(m['starts_at'])}", f"DTEND:{z(m['ends_at'] or m['starts_at'] + 3600)}", f"SUMMARY:{esc_(m['title'])}",
+                        f"DESCRIPTION:{esc_((m['description'] or '') + chr(10) + 'Join: ' + link)}", f"URL:{link}", "END:VEVENT", "END:VCALENDAR", ""])
+    return Response(body, media_type="text/calendar", headers={"Content-Disposition": f"attachment; filename=meeting-{rid}.ics"})
+
+
+@app.get("/api/meetings/{rid}")
+def meeting_detail(rid: str, u: dict = Depends(auth)):
+    with db() as c:
+        m = get_room(c, rid, u)
+        if m["kind"] != "meeting":
+            raise HTTPException(404, "Meeting not found.")
+        return meeting_view(m, members_of(c, m))
 
 
 @app.patch("/api/meetings/{rid}")
-def edit_meeting(rid: str, b: MeetingIn, u: dict = Depends(auth)):
+async def edit_meeting(rid: str, b: MeetingIn, request: Request, u: dict = Depends(auth)):
+    if b.starts_at is not None and b.starts_at < now() - 300:
+        raise HTTPException(422, "Pick a start time in the future.")
     with db() as c:
         r = get_room(c, rid, u)
         if r["kind"] != "meeting" or not (r["owner_id"] == u["id"] or u["access"] == "admin"):
             raise HTTPException(403, "Only the organiser or an admin can edit this meeting.")
-        c.execute("UPDATE rooms SET title=?, description=?, scheduled_at=? WHERE id=?", (b.title.strip(), b.description.strip(), b.scheduled_at or None, rid))
+        org = row(c, "SELECT * FROM users WHERE id=?", r["owner_id"]) or u
+        old = set(members_of(c, r)) - {r["owner_id"]}
+        new = set(_clean_invitees(c, org, b.invitee_ids))
+        ends = b.starts_at + b.duration_min * 60 if b.starts_at else None
+        changed = (r["title"], r["description"], r["starts_at"], r["ends_at"]) != (b.title.strip(), b.description.strip(), b.starts_at, ends)
+        c.execute("UPDATE rooms SET title=?, description=?, starts_at=?, ends_at=?, tz_offset=?, scheduled_at=NULL, reminded=? WHERE id=?",
+                  (b.title.strip(), b.description.strip(), b.starts_at, ends, b.tz_offset, 0 if changed else r["reminded"], rid))
+        c.execute("DELETE FROM meeting_invitees WHERE meeting_id=? AND user_id!=?", (rid, r["owner_id"]))
+        c.executemany("INSERT OR IGNORE INTO meeting_invitees VALUES(?,?)", [(rid, i) for i in new])
+        m = row(c, "SELECT * FROM rooms WHERE id=?", rid)
+        base, posted = base_url(request), []
+        posted += announce(c, "invite", m, org, u, sorted(new - old), base, None)
+        if changed:
+            posted += announce(c, "update", m, org, u, sorted(new & old), base, None)
+        posted += announce(c, "cancel", m, org, u, sorted(old - new), base, None)
+        audit(c, u, f"Edited meeting {b.title.strip()}")
+    await deliver(posted)
     return {"ok": True}
 
 
 @app.delete("/api/meetings/{rid}")
-def delete_meeting(rid: str, u: dict = Depends(auth)):
+async def delete_meeting(rid: str, request: Request, u: dict = Depends(auth)):
     with db() as c:
         r = get_room(c, rid, u)
         if r["kind"] != "meeting" or not (r["owner_id"] == u["id"] or u["access"] == "admin"):
             raise HTTPException(403, "Only the organiser or an admin can delete this meeting.")
+        org = row(c, "SELECT * FROM users WHERE id=?", r["owner_id"]) or u
+        inv = [i for i in members_of(c, r) if i != u["id"]]
+        posted = announce(c, "cancel", r, org, u, inv, base_url(request), None) if r["starts_at"] else []
         drop_files(c, "id=?", rid)
         c.execute("DELETE FROM rooms WHERE id=?", (rid,))
         audit(c, u, f"Deleted meeting {r['title']}")
+    await deliver(posted)
     return {"ok": True}
+
+
+# ---- groups (kind "call" rooms act as group chats you can call from)
+class GroupMembersIn(BaseModel):
+    user_ids: List[str] = Field(min_length=1, max_length=49)
+
+
+class GroupPatch(BaseModel):
+    title: str = Field(min_length=2, max_length=80)
+
+
+def _group(c, rid, u, manage=True):
+    r = get_room(c, rid, u)
+    if r["kind"] != "call":
+        raise HTTPException(400, "This is not a group chat.")
+    if manage and not (r["owner_id"] == u["id"] or u["access"] == "admin"):
+        raise HTTPException(403, "Only the group owner or an admin can do that.")
+    return r
+
+
+@app.post("/api/groups/{rid}/members")
+async def group_add(rid: str, b: GroupMembersIn, u: dict = Depends(auth)):
+    with db() as c:
+        r = _group(c, rid, u)
+        have = set(members_of(c, r))
+        new = [i for i in _clean_invitees(c, u, b.user_ids) if i not in have]
+        if len(have) + len(new) > 50:
+            raise HTTPException(422, "Groups can have up to 50 people.")
+        c.executemany("INSERT OR IGNORE INTO room_members VALUES(?,?)", [(rid, i) for i in new])
+        names = [x["name"] for x in rows(c, f"SELECT name FROM users WHERE id IN ({','.join('?' * len(new))})", *new)] if new else []
+        msg = add_msg(c, rid, None, f"{u['name']} added {', '.join(names)}.", True) if new else None
+        aud = audience(c, r)
+    if msg:
+        await to_many(aud, {"t": "chat", "room": rid, "msg": msg})
+        await to_many(new, {"t": "refresh"})
+    return {"added": len(new)}
+
+
+@app.delete("/api/groups/{rid}/members/{user_id}")
+async def group_remove(rid: str, user_id: str, u: dict = Depends(auth)):
+    with db() as c:
+        r = _group(c, rid, u, manage=user_id != u["id"])           # anyone may leave; removing others needs owner/admin
+        left = [i for i in members_of(c, r) if i != user_id]
+        who = row(c, "SELECT name FROM users WHERE id=?", user_id)
+        if not who or user_id not in members_of(c, r):
+            raise HTTPException(404, "That person is not in this group.")
+        c.execute("DELETE FROM room_members WHERE room_id=? AND user_id=?", (rid, user_id))
+        if len(left) < 2:
+            drop_files(c, "id=?", rid)
+            c.execute("DELETE FROM rooms WHERE id=?", (rid,))
+            msg, aud = None, left
+        else:
+            if r["owner_id"] == user_id:
+                c.execute("UPDATE rooms SET owner_id=? WHERE id=?", (left[0], rid))
+            msg = add_msg(c, rid, None, f"{u['name']} left." if user_id == u["id"] else f"{u['name']} removed {who['name']}.", True)
+            aud = audience(c, r)
+    if msg:
+        await to_many(aud, {"t": "chat", "room": rid, "msg": msg})
+    await to_many([user_id, *aud], {"t": "refresh"})
+    return {"ok": True}
+
+
+@app.patch("/api/groups/{rid}")
+async def group_rename(rid: str, b: GroupPatch, u: dict = Depends(auth)):
+    with db() as c:
+        r = _group(c, rid, u)
+        c.execute("UPDATE rooms SET title=? WHERE id=?", (b.title.strip(), rid))
+        aud = audience(c, r)
+    await to_many(aud, {"t": "refresh"})
+    return {"ok": True}
+
+
+# ---- call history, admin reports, export
+@app.get("/api/calls/history")
+def call_history(u: dict = Depends(auth)):
+    with db() as c:
+        return rows(c, """SELECT s.id, s.room_id, s.title, s.kind, s.mode, s.started, s.ended, s.peak,
+            (SELECT COUNT(DISTINCT user_id) FROM call_participants WHERE session_id=s.id) people
+            FROM call_sessions s JOIN call_participants p ON p.session_id=s.id AND p.user_id=?
+            WHERE s.ws_id=? GROUP BY s.id ORDER BY s.id DESC LIMIT 15""", u["id"], u["ws_id"])
+
+
+@app.get("/api/admin/calls")
+def admin_calls(a: dict = Depends(admin_only)):
+    with db() as c:
+        return rows(c, """SELECT s.id, s.title, s.kind, s.mode, s.started, s.ended, s.peak,
+            (SELECT name FROM users WHERE id=s.started_by) host,
+            (SELECT COUNT(DISTINCT user_id) FROM call_participants WHERE session_id=s.id) people
+            FROM call_sessions s WHERE s.ws_id=? ORDER BY s.id DESC LIMIT 150""", a["ws_id"])
+
+
+@app.get("/api/admin/system")
+def admin_system(a: dict = Depends(admin_only)):
+    with db() as c:
+        used = row(c, "SELECT COALESCE(SUM(f.size),0) n, COUNT(*) k FROM files f JOIN rooms r ON r.id=f.room_id WHERE r.ws_id=?", a["ws_id"])
+        sess = row(c, "SELECT COUNT(*) n, COALESCE(SUM(ended-started),0) secs FROM call_sessions WHERE ws_id=? AND ended IS NOT NULL", a["ws_id"])
+        ids = {x["id"] for x in rows(c, "SELECT id FROM users WHERE ws_id=?", a["ws_id"])}
+        rooms_ids = {x["id"] for x in rows(c, "SELECT id FROM rooms WHERE ws_id=?", a["ws_id"])}
+    live = {k: len(v) for k, v in CALLS.items() if k in rooms_ids and v}
+    return {"version": "5.0", "uptime_s": now() - STARTED, "online": len([i for i in conns if i in ids]), "live_calls": len(live), "live_participants": sum(live.values()),
+            "db_mb": round(Path(DB_PATH).stat().st_size / 1048576, 2), "storage_mb": round(used["n"] / 1048576, 2), "files": used["k"], "quota_mb": QUOTA_MB,
+            "calls_total": sess["n"], "call_minutes": sess["secs"] // 60}
+
+
+@app.get("/api/admin/export")
+def admin_export(a: dict = Depends(admin_only)):
+    with db() as c:
+        w = row(c, "SELECT id,name,location,registration_number,industry,description,office_code,created FROM workspaces WHERE id=?", a["ws_id"])
+        data = {"exported_at": now(), "workspace": w,
+                "users": rows(c, "SELECT id,name,email,role,department,phone,access,active,created,last_login FROM users WHERE ws_id=?", a["ws_id"]),
+                "teams": [team_view(c, t) for t in rows(c, "SELECT * FROM teams WHERE ws_id=?", a["ws_id"])],
+                "meetings": [meeting_view(r, members_of(c, r)) for r in rows(c, "SELECT * FROM rooms WHERE ws_id=? AND kind='meeting'", a["ws_id"])],
+                "call_sessions": rows(c, "SELECT * FROM call_sessions WHERE ws_id=?", a["ws_id"])}
+        audit(c, a, "Exported workspace data")
+    return Response(json.dumps(data, indent=2), media_type="application/json", headers={"Content-Disposition": "attachment; filename=workspace-export.json"})
 
 
 @app.post("/api/calls", status_code=201)
@@ -1053,6 +1399,10 @@ async def upload(rid: str, request: Request, name: str, mime: str = "application
         raise HTTPException(415, "This file type is not allowed.")
     if int(request.headers.get("content-length") or 0) > MAX_UPLOAD:
         raise HTTPException(413, "Files can be up to 50 MB.")
+    with db() as c:
+        used = row(c, "SELECT COALESCE(SUM(f.size),0) n FROM files f JOIN rooms r ON r.id=f.room_id WHERE r.ws_id=?", u["ws_id"])["n"]
+    if used + int(request.headers.get("content-length") or 0) > QUOTA_MB * 1024 * 1024:
+        raise HTTPException(507, "Workspace file storage is full. Ask an admin to free space.")
     if not re.match(r"^[\w.+-]+/[\w.+-]+$", mime):
         mime = "application/octet-stream"
     fid = uid()
@@ -1099,6 +1449,18 @@ def get_file(fid: str, token: str = "", inline: int = 0, authorization: str = He
                         content_disposition_type="inline" if safe else "attachment")
 
 
+@app.get("/api/rooms/{rid}/call-info")
+def call_info(rid: str, u: dict = Depends(auth)):
+    """Everything the standalone call page needs in one request."""
+    with db() as c:
+        r = get_room(c, rid, u)
+        people = rows(c, "SELECT id,name,role FROM users WHERE ws_id=? AND active=1 ORDER BY name", u["ws_id"])
+        return {"me": {"id": u["id"], "name": u["name"], "access": u["access"]},
+                "room": {k: r.get(k) for k in ("id", "kind", "title", "description", "starts_at", "ends_at", "tz_offset", "owner_id", "team_id", "expires")},
+                "people": people, "members": members_of(c, r), "host": is_host(c, u, r), "live": len(CALLS.get(rid, ())), "locked": rid in CLOCK,
+                "mode": CMODE.get(rid) or ("video" if r["kind"] == "meeting" else "voice"), "max": MAX_CALL, "started": CSTART.get(rid)}
+
+
 @app.get("/api/rooms/{rid}/files")
 def room_files(rid: str, u: dict = Depends(auth)):
     with db() as c:
@@ -1114,6 +1476,12 @@ conns: dict = {}      # user_id -> set[WebSocket]
 CALLS: dict = {}      # room_id -> set[user_id]
 SUBS: dict = {}       # meeting room_id -> set[user_id]
 SHARING: dict = {}    # room_id -> {user_id: screen stream id}
+PSTATE: dict = {}     # room_id -> {user_id: {muted, cam, hand}}
+CMODE: dict = {}      # room_id -> 'voice' | 'video'
+SESS: dict = {}       # room_id -> open call_sessions.id
+CLOCK: set = set()    # rooms whose host locked the call
+CSTART: dict = {}     # room_id -> epoch the live call began (shared timer)
+CSOCK: dict = {}      # room_id -> {user_id: the websocket that is in the call}
 
 
 async def send(user_id, msg):
@@ -1122,6 +1490,21 @@ async def send(user_id, msg):
             await s.send_json(msg)
         except Exception:
             conns.get(user_id, set()).discard(s)
+
+
+async def to_call(rid, ids, msg, exclude=None):
+    """Call-signalling events go to the socket that is in the call, not to the user's other tabs."""
+    for i in ids:
+        if i == exclude:
+            continue
+        sk = CSOCK.get(rid, {}).get(i)
+        if sk:
+            try:
+                await sk.send_json(msg)
+            except Exception:
+                pass
+        else:
+            await send(i, msg)
 
 
 async def to_many(ids, msg, exclude=None):
@@ -1145,79 +1528,195 @@ def ws_peers(c, ws_id):
     return [i for i in list(conns) if (row(c, "SELECT ws_id FROM users WHERE id=?", i) or {}).get("ws_id") == ws_id]
 
 
+_chat_hits: dict = {}
+
+
+def flooding(user_id: str) -> bool:
+    h = [t for t in _chat_hits.get(user_id, []) if t > time.time() - 10]
+    _chat_hits[user_id] = h + [time.time()]
+    return len(h) >= 20
+
+
 async def leave_call(u, rid):
     peers = CALLS.get(rid)
     if not peers or u["id"] not in peers:
         return
     peers.discard(u["id"])
     SHARING.get(rid, {}).pop(u["id"], None)
-    await to_many(list(peers), {"t": "peer_leave", "room": rid, "user": u["id"]})
+    PSTATE.get(rid, {}).pop(u["id"], None)
+    CSOCK.get(rid, {}).pop(u["id"], None)
+    await to_call(rid, list(peers), {"t": "peer_leave", "room": rid, "user": u["id"]})
+    msgs, aud, r = [], [], None
     with db() as c:
+        sid = SESS.get(rid)
+        if sid:
+            c.execute("UPDATE call_participants SET left=? WHERE session_id=? AND user_id=? AND left IS NULL", (now(), sid, u["id"]))
         r = row(c, "SELECT * FROM rooms WHERE id=?", rid)
         if r:
-            aud, m = audience(c, r), add_msg(c, rid, None, f"{u['name']} left the call.", True)
+            msgs.append(add_msg(c, rid, None, f"{u['name']} left the call.", True))
+            if not peers and sid:
+                st = row(c, "SELECT started FROM call_sessions WHERE id=?", sid)
+                c.execute("UPDATE call_sessions SET ended=? WHERE id=?", (now(), sid))
+                msgs.append(add_msg(c, rid, None, f"Call ended · {fmt_call(now() - st['started'])}", True))
+            aud = audience(c, r)
     if r:
         await to_many(aud, {"t": "call_state", "room": rid, "count": len(peers)})
-        await to_many(aud, {"t": "chat", "room": rid, "msg": m})
+        for m_ in msgs:
+            await to_many(aud, {"t": "chat", "room": rid, "msg": m_})
     if not peers:
-        CALLS.pop(rid, None)
-        SHARING.pop(rid, None)
+        CLOCK.discard(rid)
+        for d in (CALLS, SHARING, PSTATE, CMODE, SESS, CSTART, CSOCK):
+            d.pop(rid, None)
 
 
 async def handle(u, sock, m):
     t, rid = m.get("t"), m.get("room")
     if t == "ping":
         return await sock.send_json({"t": "pong"})
-    msg = None
+    if t == "chat" and flooding(u["id"]):
+        return await sock.send_json({"t": "error", "msg": "You are sending messages too fast."})
+    msg, allowed, rejoin = None, True, u["id"] in CALLS.get(rid, ())
     with db() as c:
         r = row(c, "SELECT * FROM rooms WHERE id=?", rid) if isinstance(rid, str) else None
         if not (r and can_access(c, u, r) and not (r["expires"] and r["expires"] < now())):
             return await sock.send_json({"t": "error", "msg": "That room is unavailable."})
         aud = audience(c, r)
+        host = is_host(c, u, r)
         if t == "chat":
             text = str(m.get("text", "")).strip()[:4000]
             rp = m.get("reply_to")
             if not (isinstance(rp, int) and row(c, "SELECT 1 x FROM messages WHERE id=? AND room_id=?", rp, rid)):
                 rp = None
             msg = add_msg(c, rid, u["id"], text, reply_to=rp) if text else None
-        elif t == "call_join" and (u["id"] in CALLS.get(rid, ()) or len(CALLS.get(rid, ())) < MAX_CALL):
-            msg = add_msg(c, rid, None, f"{u['name']} joined the call.", True)
+        elif t == "call_join":
+            allowed = rejoin or len(CALLS.get(rid, ())) < MAX_CALL
+            if allowed and rid in CLOCK and not rejoin and not host:
+                return await sock.send_json({"t": "error", "code": "locked", "msg": "The host locked this call. Ask them to let you in."})
+            if allowed and not rejoin:
+                msg = add_msg(c, rid, None, f"{u['name']} joined the call.", True)
+    peers = CALLS.get(rid, ())
     if t == "open":
         SUBS.setdefault(rid, set()).add(u["id"])
-        await sock.send_json({"t": "call_state", "room": rid, "count": len(CALLS.get(rid, ()))})
+        await sock.send_json({"t": "call_state", "room": rid, "count": len(peers)})
     elif t == "chat" and msg:
         await to_many(aud, {"t": "chat", "room": rid, "msg": msg})
     elif t == "typing":
         await to_many(aud, {"t": "typing", "room": rid, "user": u["id"]}, exclude=u["id"])
     elif t == "call_join":
-        if not msg:
-            return await sock.send_json({"t": "error", "msg": f"Calls support up to {MAX_CALL} people."})
+        if not allowed:
+            return await sock.send_json({"t": "error", "code": "full", "msg": f"Calls support up to {MAX_CALL} people."})
         peers = CALLS.setdefault(rid, set())
+        CSOCK.setdefault(rid, {})[u["id"]] = sock
+        CSTART.setdefault(rid, now())
         others = [p for p in peers if p != u["id"]]
         peers.add(u["id"])
-        await sock.send_json({"t": "peers", "room": rid, "peers": others, "sharing": SHARING.get(rid, {})})
+        CMODE.setdefault(rid, "video" if r["kind"] == "meeting" else "voice")
+        with db() as c:                                           # call history: one session per live call
+            if rid not in SESS:
+                SESS[rid] = c.execute("INSERT INTO call_sessions(room_id,ws_id,title,kind,started,mode,started_by) VALUES(?,?,?,?,?,?,?)",
+                                      (rid, r["ws_id"], r["title"], r["kind"], now(), CMODE[rid], u["id"])).lastrowid
+            if not row(c, "SELECT 1 x FROM call_participants WHERE session_id=? AND user_id=? AND left IS NULL", SESS[rid], u["id"]):
+                c.execute("INSERT INTO call_participants VALUES(?,?,?,NULL)", (SESS[rid], u["id"], now()))
+            c.execute("UPDATE call_sessions SET peak=MAX(peak,?) WHERE id=?", (len(peers), SESS[rid]))
+        await sock.send_json({"t": "peers", "room": rid, "peers": others, "sharing": SHARING.get(rid, {}), "pstate": PSTATE.get(rid, {}), "mode": CMODE[rid], "host": host, "locked": rid in CLOCK, "started": CSTART[rid]})
         aud = list(set(aud) | {u["id"]})
         await to_many(aud, {"t": "call_state", "room": rid, "count": len(peers)})
-        await to_many(aud, {"t": "chat", "room": rid, "msg": msg})
-    elif t == "share":                                  # only the sharer toggles their own share
-        on, sid = bool(m.get("on")), str(m.get("sid", ""))[:80]
-        if u["id"] in CALLS.get(rid, ()):
-            if on:
-                SHARING.setdefault(rid, {})[u["id"]] = sid
-            else:
-                SHARING.get(rid, {}).pop(u["id"], None)
-            await to_many(list(CALLS[rid]), {"t": "share", "room": rid, "from": u["id"], "on": on, "sid": sid}, exclude=u["id"])
+        if msg:
+            await to_many(aud, {"t": "chat", "room": rid, "msg": msg})
     elif t == "call_leave":
         await leave_call(u, rid)
+    elif u["id"] not in peers and t in ("sig", "share", "pstate", "react", "mode", "host"):
+        return
     elif t == "sig":
-        if u["id"] in CALLS.get(rid, ()) and m.get("to") in CALLS.get(rid, ()):
-            await send(m["to"], {"t": "sig", "room": rid, "from": u["id"], "data": m.get("data")})
+        if m.get("to") in peers:
+            await to_call(rid, [m["to"]], {"t": "sig", "room": rid, "from": u["id"], "data": m.get("data")})
+    elif t == "share":                                  # only the sharer toggles their own share
+        on, sid = bool(m.get("on")), str(m.get("sid", ""))[:80]
+        if on:
+            SHARING.setdefault(rid, {})[u["id"]] = sid
+        else:
+            SHARING.get(rid, {}).pop(u["id"], None)
+        await to_call(rid, list(peers), {"t": "share", "room": rid, "from": u["id"], "on": on, "sid": sid}, exclude=u["id"])
+    elif t == "pstate":                                 # mic / camera / raised hand, visible to everyone in the call
+        st = PSTATE.setdefault(rid, {}).setdefault(u["id"], {})
+        st.update({k: bool(v) for k, v in (m.get("state") or {}).items() if k in ("muted", "cam", "hand", "rec")})
+        await to_call(rid, list(peers), {"t": "pstate", "room": rid, "user": u["id"], "state": st}, exclude=u["id"])
+    elif t == "react":
+        await to_call(rid, list(peers), {"t": "react", "room": rid, "user": u["id"], "emoji": str(m.get("emoji", ""))[:8]}, exclude=u["id"])
+    elif t == "mode":                                   # voice call <-> meeting (video) mode, for group, team and space calls
+        mode = m.get("mode")
+        if mode in ("voice", "video") and r["kind"] != "meeting" and CMODE.get(rid) != mode:
+            CMODE[rid] = mode
+            with db() as c:
+                if SESS.get(rid):
+                    c.execute("UPDATE call_sessions SET mode=? WHERE id=?", (mode, SESS[rid]))
+                note = add_msg(c, rid, None, f"{u['name']} switched the call to {'meeting' if mode == 'video' else 'voice'} mode.", True)
+            await to_call(rid, list(peers), {"t": "mode", "room": rid, "mode": mode, "by": u["id"]})
+            await to_many(aud, {"t": "chat", "room": rid, "msg": note})
+    elif t == "host":
+        if not host:
+            return await sock.send_json({"t": "error", "msg": "Only the host can do that."})
+        act, tgt = m.get("action"), m.get("to")
+        if act == "end":
+            people = list(peers)
+            await to_call(rid, people, {"t": "ended", "room": rid, "by": u["id"]})
+            for p in people:
+                with db() as c:
+                    pu = load_user_by_id(c, p)
+                if pu:
+                    await leave_call(pu, rid)
+        elif act in ("lock", "unlock"):
+            (CLOCK.add if act == "lock" else CLOCK.discard)(rid)
+            with db() as c:
+                note = add_msg(c, rid, None, f"{u['name']} {'locked' if act == 'lock' else 'unlocked'} the call.", True)
+            await to_call(rid, list(peers), {"t": "locked", "room": rid, "locked": act == "lock"})
+            await to_many(aud, {"t": "chat", "room": rid, "msg": note})
+        elif act == "mute_all":
+            await to_call(rid, list(peers), {"t": "mute_req", "room": rid, "by": u["id"]}, exclude=u["id"])
+        elif tgt in peers and tgt != u["id"]:
+            if act == "mute":
+                await to_call(rid, [tgt], {"t": "mute_req", "room": rid, "by": u["id"]})
+            elif act == "remove":
+                await to_call(rid, [tgt], {"t": "removed", "room": rid})
+                with db() as c:
+                    pu = load_user_by_id(c, tgt)
+                if pu:
+                    await leave_call(pu, rid)
+    elif t == "call_invite":                            # bring more people into a live call or meeting
+        want = [x for x in dict.fromkeys(m.get("to") or []) if isinstance(x, str) and x != u["id"]][:20]
+        if r["kind"] == "dm":
+            return await sock.send_json({"t": "error", "msg": "Direct calls cannot add people. Create a group and call from there."})
+        ok, skipped, names, note = [], 0, [], None
+        with db() as c:
+            for x in want:
+                tu = load_user_by_id(c, x)
+                if not tu or tu["ws_id"] != u["ws_id"]:
+                    skipped += 1
+                    continue
+                if r["kind"] == "call":
+                    if c.execute("INSERT OR IGNORE INTO room_members VALUES(?,?)", (rid, x)).rowcount:
+                        names.append(tu["name"])
+                elif r["kind"] == "meeting":
+                    c.execute("INSERT OR IGNORE INTO meeting_invitees VALUES(?,?)", (rid, x))
+                elif not can_access(c, tu, r):
+                    skipped += 1
+                    continue
+                ok.append(x)
+            if names:
+                note = add_msg(c, rid, None, f"{u['name']} added {', '.join(names)}.", True)
+            aud2 = audience(c, r)
+        if note:
+            await to_many(aud2, {"t": "chat", "room": rid, "msg": note})
+        await to_many(ok, {"t": "refresh"})
+        await to_many(ok, {"t": "ring", "room": rid, "from": u["id"], "title": r["title"], "kind": r["kind"]})
+        if skipped:
+            await sock.send_json({"t": "error", "msg": f"{skipped} people are not in this team. Add them to the team first."})
     elif t == "ring":
-        allowed = set(conns) if r["kind"] == "meeting" else None
+        allowed_ring = set(conns) if r["kind"] == "meeting" else None
         with db() as c:
             for to in [x for x in (m.get("to") or [])[:MAX_CALL] if x != u["id"] and x in conns]:
                 tu = load_user_by_id(c, to)
-                if tu and (allowed is not None and tu["ws_id"] == u["ws_id"] or can_access(c, tu, r)):
+                if tu and (allowed_ring is not None and tu["ws_id"] == u["ws_id"] or can_access(c, tu, r)):
                     await send(to, {"t": "ring", "room": rid, "from": u["id"], "title": r["title"], "kind": r["kind"]})
 
 
@@ -1249,10 +1748,11 @@ async def ws_endpoint(sock: WebSocket, token: str = ""):
         print("ws error:", e)
     finally:
         conns.get(u["id"], set()).discard(sock)
+        for rid_, who in list(CSOCK.items()):          # leave only the call this socket was in (other tabs stay connected)
+            if who.get(u["id"]) is sock:
+                await leave_call(u, rid_)
         if not conns.get(u["id"]):
             conns.pop(u["id"], None)
-            for rid in [k for k, p in CALLS.items() if u["id"] in p]:
-                await leave_call(u, rid)
             for s in SUBS.values():
                 s.discard(u["id"])
             with db() as c:
