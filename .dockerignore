@@ -1,0 +1,25 @@
+# Python cache and environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+.venv/
+env/
+
+# Local Database files (prevent overwriting production data)
+meetly.db
+meetly.db-shm
+meetly.db-wal
+
+# Local User Uploads (prevent baking test files into the image)
+uploads/
+
+# Environment variables and Git history
+.env
+.git/
+.gitignore
+
+# Docker files
+Dockerfile
+.dockerignore
