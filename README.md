@@ -1,102 +1,153 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Meetly · Sign in</title>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-:root{--ink:#0e1621;--line:#e3e8ef;--tx:#101828;--mut:#667085;--ac:#4f46e5;--ac2:#eef0ff;--bad:#f04438;--ok:#12b76a;--warn:#f79009;--r:12px}
-*{box-sizing:border-box}html,body{height:100%;margin:0}
-body{font:15px/1.5 Manrope,system-ui,sans-serif;color:var(--tx);background:#fff}
-button,input{font:inherit;color:inherit}
-input[type=text],input[type=email],input[type=password],input:not([type]){width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:#fff;transition:border-color .15s,box-shadow .15s}
-input:focus{outline:0;border-color:var(--ac);box-shadow:0 0 0 4px var(--ac2)}
-label{display:block;font-size:13px;font-weight:600;margin:14px 0 6px}
-.wrap{min-height:100%;display:grid;grid-template-columns:1.1fr 1fr}
-.brand{background:radial-gradient(circle at 20% 15%,#2b2f8f 0,#14183f 45%,#0b0f24 100%);color:#e9ecff;padding:64px;display:flex;flex-direction:column;justify-content:space-between}
-.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px}.logo i{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#7c74ff,#4f46e5);display:grid;place-items:center}
-.brand h1{font-size:46px;line-height:1.08;margin:0 0 16px;max-width:14ch;font-weight:800}.brand p{color:#b5bbe8;max-width:46ch;margin:0 0 26px}
-.feat{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:520px}
-.feat div{background:#ffffff12;border:1px solid #ffffff1f;border-radius:var(--r);padding:12px 14px;font-size:14px}.feat b{display:block}.feat span{color:#b5bbe8;font-size:13px}
-.panel{padding:40px;display:flex;flex-direction:column;justify-content:center;overflow:auto}.card{max-width:450px;width:100%;margin:0 auto}
-h2{font-size:26px;margin:0 0 4px;font-weight:800}.mut{color:var(--mut)}a{color:var(--ac);font-weight:600;cursor:pointer;text-decoration:none}a:hover{text-decoration:underline}
-.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:#f2f4f7;border-radius:12px;padding:4px;margin:20px 0 6px}
-.seg button{border:0;background:none;padding:9px 6px;border-radius:9px;font-weight:600;font-size:13.5px;color:var(--mut);cursor:pointer}.seg button.on{background:#fff;color:var(--ac);box-shadow:0 1px 3px #1018281a}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}.err{color:var(--bad);font-size:13px;min-height:22px;margin:8px 0}
-.go{width:100%;padding:12px;border:0;border-radius:11px;background:var(--ac);color:#fff;font-weight:700;cursor:pointer}.go:hover{background:#4338ca}.go:disabled{opacity:.5;cursor:default}
-.ghost{width:100%;padding:11px;border:1px solid var(--line);border-radius:11px;background:#fff;font-weight:600;cursor:pointer;margin-top:8px}.ghost:hover{border-color:#c5cdd8}
-.pw{position:relative}.pw input{padding-right:62px!important}.pw button{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:none;color:var(--ac);font-weight:600;font-size:13px;cursor:pointer;padding:6px 8px}
-.meter{display:flex;gap:4px;align-items:center;margin-top:7px;font-size:12px;color:var(--mut)}.meter i{flex:1;height:4px;border-radius:2px;background:#e4e8ef}.meter span{min-width:46px;text-align:right}
-.drop{border:2px dashed #cfd5ff;background:var(--ac2);border-radius:14px;padding:16px;text-align:center;color:var(--ac);font-weight:600;cursor:pointer;margin-top:6px}.drop.ok{border-color:var(--ok);background:#e8f8f1;color:#0b7a4b}.drop small{display:block;font-weight:500;color:var(--mut)}
-.or{display:flex;align-items:center;gap:10px;color:var(--mut);font-size:12.5px;margin:16px 0 0}.or:before,.or:after{content:"";flex:1;height:1px;background:var(--line)}
-.code{font-family:ui-monospace,monospace;background:var(--ac2);color:var(--ac);padding:7px 11px;border-radius:9px;display:inline-block;font-size:15px;font-weight:600;user-select:all;word-break:break-all}
-#modal{position:fixed;inset:0;background:#0a0f24b3;display:none;place-items:center;padding:16px;z-index:9}#modal.on{display:grid}.box{background:#fff;border-radius:18px;padding:26px;max-width:520px;width:100%;max-height:92vh;overflow:auto}
-.cr{border:1px solid var(--line);border-radius:12px;margin:14px 0}.cr div{display:flex;gap:10px;justify-content:space-between;align-items:center;padding:9px 13px;border-bottom:1px solid var(--line);font-size:13.5px}.cr div:last-child{border:0}.cr span{color:var(--mut)}
-.warn{background:#fff6e5;border:1px solid #fde3b0;color:#8a5a00;border-radius:10px;padding:9px 12px;font-size:13px;margin:10px 0}
-.chk{display:flex;gap:9px;align-items:center;font-weight:500;font-size:14px;margin:12px 0}.chk input{width:auto}
-:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
-@media(max-width:860px){.wrap{grid-template-columns:1fr}.brand{display:none}.g2{grid-template-columns:1fr}}
-</style>
-</head>
-<body>
-<div class="wrap">
-  <section class="brand">
-    <div class="logo"><i><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="13" height="12" rx="2"/><path d="M15 10l7-4v12l-7-4z"/></svg></i>Meetly Workspace</div>
-    <div><h1>Your company, in one place.</h1><p>Chat, voice calls, video meetings and file sharing, with full admin control over who joins.</p>
-    <div class="feat"><div><b>Chat and files</b><span>Replies, reactions, uploads to 50 MB</span></div><div><b>Voice calls</b><span>Simple audio calls with screen share</span></div><div><b>Video meetings</b><span>Invite link, camera and presenting</span></div><div><b>Safe recovery</b><span>Personal recovery key and credential file</span></div></div></div>
-    <span style="color:#8f96d1;font-size:13px">Every account gets a credential file at sign-up. Keep it: it lets you reset your own password.</span>
-  </section>
-  <section class="panel"><div class="card" id="card"></div></section>
-</div>
-<div id="modal"></div>
-<script>
-const $=s=>document.querySelector(s);
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-async function api(p,b){const r=await fetch('/api'+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});const d=await r.json().catch(()=>({}));
-  if(!r.ok)throw new Error(typeof d.detail==='string'?d.detail:(d.detail?.[0]?.msg||'Request failed'));return d}
-const pwf=(n,l,meter,auto)=>`<label>${l}</label><div class="pw"><input name="${n}" type="password" required ${meter?'minlength="8" data-meter="1"':''} autocomplete="${auto||'current-password'}"><button type="button" onclick="const i=this.previousElementSibling;i.type=i.type==='password'?'text':'password';this.textContent=i.type==='password'?'Show':'Hide'">Show</button></div>${meter?'<div class="meter"><i></i><i></i><i></i><i></i><span></span></div>':''}`;
-const F={
-login:()=>`<form onsubmit="go(event,'/auth/login')"><label>Work email</label><input name="email" type="email" required autocomplete="username" autofocus>${pwf('password','Password')}<div class="err"></div><button class="go">Sign in</button><p style="text-align:center;margin:14px 0 0"><a onclick="show('recover')">Forgot password?</a></p></form>`,
-join:()=>`<form onsubmit="go(event,'/auth/register')"><div class="g2"><div><label>Full name</label><input name="name" required></div><div><label>Your role</label><input name="role" placeholder="e.g. Backend engineer" required></div><div><label>Work email</label><input name="email" type="email" required></div><div><label>Department</label><input name="department"></div></div>${pwf('password','Password (8+ characters, letters and numbers)',1,'new-password')}<div class="g2"><div><label>Office code</label><input name="office_code" placeholder="ACME-7K2Q" required></div><div><label>Office secret</label><input name="secret" type="password" required></div></div><div class="err"></div><button class="go">Create my account</button><p class="mut" style="font-size:13px">You will download a credential file next. It lets you reset your password later.</p></form>`,
-create:()=>`<form onsubmit="go(event,'/workspaces',1)"><div class="g2"><div><label>Company name</label><input name="company_name" required></div><div><label>Registration number</label><input name="registration_number" required></div><div><label>Location</label><input name="location" placeholder="City, Country" required></div><div><label>Industry</label><input name="industry"></div></div><label>About the company</label><input name="description" maxlength="300"><div class="g2"><div><label>Admin name</label><input name="admin_name" required></div><div><label>Admin email</label><input name="admin_email" type="email" required></div></div>${pwf('admin_password','Admin password (8+ characters, letters and numbers)',1,'new-password')}<div class="err"></div><button class="go">Create workspace</button><p class="mut" style="font-size:13px">You will download a credential file with your recovery key and the office code and secret for inviting employees.</p></form>`,
-recover:()=>`<form onsubmit="doRecover(event)"><div class="drop" id="drop" onclick="$('#cf').click()" ondragover="event.preventDefault()" ondrop="event.preventDefault();loadCred(event.dataTransfer.files[0])">Upload your credential file<small>meetly-credentials-….json</small></div><input type="file" id="cf" accept=".json,application/json" hidden onchange="loadCred(this.files[0])"><div class="or">or enter them by hand</div>
-  <label>Work email</label><input name="email" id="rem" type="email" required autocomplete="username"><label>Recovery key</label><input name="recovery_key" id="rk" placeholder="MRK-XXXX-XXXX-XXXX-XXXX-XXXX" required autocomplete="off" spellcheck="false" style="font-family:ui-monospace,monospace">
-  ${pwf('new_password','New password (8+ characters, letters and numbers)',1,'new-password')}${pwf('confirm','Confirm new password',0,'new-password')}<div class="err"></div><button class="go">Reset password</button><button type="button" class="ghost" onclick="show('login')">Back to sign in</button></form>`};
-const T={login:['Welcome back','Sign in to your workspace'],join:['Join your company','Use the office code from your admin'],create:['Register your company','You become the workspace admin'],recover:['Reset your password','Use your email and personal recovery key']};
-function show(t='login'){$('#card').innerHTML=`<h2>${T[t][0]}</h2><div class="mut">${T[t][1]}</div>${t==='recover'?'<div style="height:14px"></div>':`<div class="seg">${[['login','Sign in'],['join','Join'],['create','Register']].map(([k,l])=>`<button class="${t===k?'on':''}" onclick="show('${k}')">${l}</button>`).join('')}</div>`}${F[t]()}`}
-/* password strength */
-function score(p){let s=0;if(p.length>=8)s++;if(p.length>=12)s++;if(/[a-z]/.test(p)&&/[A-Z]/.test(p))s++;if(/\d/.test(p)&&/[A-Za-z]/.test(p))s++;if(/[^A-Za-z0-9]/.test(p))s++;return Math.min(4,s)}
-addEventListener('input',e=>{const i=e.target;if(!i.dataset?.meter)return;const m=i.closest('.pw').nextElementSibling,s=i.value?score(i.value):0,c=['#e4e8ef','#f04438','#f79009','#12b76a','#0b7a4b'][s];
-  m.querySelectorAll('i').forEach((b,k)=>b.style.background=k<s?c:'#e4e8ef');m.querySelector('span').textContent=i.value?['Weak','Weak','Fair','Good','Strong'][s]:''});
-/* credential file: download + keep */
-const nextUrl=()=>{const n=sessionStorage.getItem('nextUrl');sessionStorage.removeItem('nextUrl');return n&&/^\/(call|dashboard)(\/|\?|#|$)/.test(n)?n:'/dashboard'};
-const normKey=k=>k.toUpperCase().replace(/[^A-Z0-9]/g,'');
-function credsModal(f,o){return new Promise(res=>{const c=f.credentials,inv=f.workspace_invite,name=`meetly-credentials-${f.account.email.split('@')[0]}-${f.issued_at.slice(0,10)}.json`;let saved=false;
-  $('#modal').innerHTML=`<div class="box"><h2>${esc(o.title)}</h2><p class="mut" style="margin:4px 0 0">${esc(o.intro)}</p>
-  <div class="cr"><div><span>Email</span><b>${esc(c.email)}</b></div>${c.password?`<div><span>Password</span><b>${esc(c.password)}</b></div>`:''}<div><span>Recovery key</span><b class="code">${esc(c.recovery_key)}</b></div>${inv?`<div><span>Office code</span><b>${esc(inv.office_code)}</b></div><div><span>Office secret</span><b class="code">${esc(inv.office_secret)}</b></div>`:''}</div>
-  <div class="warn">The server keeps only hashes, so none of this can be shown again. The recovery key stays valid after you change your password and lets you reset it from the Forgot password page.</div>
-  <button class="go" id="dl">Download credential file (JSON)</button><button class="ghost" id="cp">Copy recovery key</button>
-  <label class="chk"><input type="checkbox" id="ack" disabled> I saved this file somewhere safe</label><button class="go" id="done" disabled>${esc(o.cta||'Continue')}</button></div>`;$('#modal').classList.add('on');
-  $('#dl').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({schema:f.schema,app_url:location.origin,...f},null,2)],{type:'application/json'}));a.download=name;a.click();saved=true;$('#ack').disabled=false;$('#dl').textContent='Downloaded. Download again'};
-  $('#cp').onclick=()=>navigator.clipboard.writeText(c.recovery_key).then(()=>$('#cp').textContent='Copied');
-  $('#ack').onchange=e=>$('#done').disabled=!e.target.checked;$('#done').onclick=()=>{$('#modal').classList.remove('on');res()}})}
-async function go(e,path,created){e.preventDefault();const f=e.target,err=f.querySelector('.err'),b=f.querySelector('.go');err.textContent='';b.disabled=true;
-  try{const d=await api(path,Object.fromEntries(new FormData(f)));localStorage.setItem('tok',d.token);
-    if(d.credentials_file)await credsModal(d.credentials_file,created?{title:'Workspace created',intro:'Save this file now. It holds your sign-in details, your personal recovery key, and the office code and secret for inviting employees.',cta:'Open dashboard'}:{title:'Account created',intro:'Save your credential file. If you ever lose your password you can reset it with this file.',cta:'Open dashboard'});
-    location.replace(nextUrl())}catch(x){err.textContent=x.message;b.disabled=false}}
-/* forgot password */
-async function loadCred(file){if(!file)return;const d=$('#drop');
-  try{const j=JSON.parse(await file.text()),c=j.credentials;if(j.schema!=='meetly.credentials/v1'||!c?.email||!c?.recovery_key)throw 0;
-    if(crypto.subtle){const h=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(c.email.toLowerCase()+normKey(c.recovery_key))))].map(x=>x.toString(16).padStart(2,'0')).join('').slice(0,16);if(h!==j.fingerprint)throw 1}
-    $('#rem').value=c.email;$('#rk').value=c.recovery_key;d.className='drop ok';d.innerHTML=`File loaded<small>${esc(c.email)} · issued ${esc((j.issued_at||'').slice(0,10))}</small>`}
-  catch(x){d.className='drop';d.innerHTML=`${x===1?'This file looks edited or damaged':'That is not a Meetly credential file'}<small>Try again or enter your details by hand</small>`}}
-async function doRecover(e){e.preventDefault();const f=e.target,err=f.querySelector('.err'),b=f.querySelector('.go'),v=Object.fromEntries(new FormData(f));err.textContent='';
-  if(v.new_password!==v.confirm){err.textContent='The two passwords do not match.';return}
-  b.disabled=true;try{const d=await api('/auth/recover',{email:v.email,recovery_key:v.recovery_key,new_password:v.new_password});localStorage.setItem('tok',d.token);
-    await credsModal(d.credentials_file,{title:'Password reset',intro:'Your password is changed and all other sessions were signed out. For safety your recovery key was replaced. Save the new file.',cta:'Open dashboard'});location.replace(nextUrl())}
-  catch(x){err.textContent=x.message;b.disabled=false}}
-(async()=>{const t=localStorage.getItem('tok');if(t){try{const r=await fetch('/api/bootstrap',{headers:{Authorization:'Bearer '+t}});if(r.ok)return location.replace(nextUrl());localStorage.removeItem('tok')}catch{}}show(location.hash==='#forgot'?'recover':'login')})();
-</script>
-</body>
-</html>
+# Meetly Workspace v6
+
+FastAPI + **SQLite3** backend. Two pages: `index.html` (sign in, join, register company) and `dashboard.html` (the whole app after sign-in).
+
+## Project structure
+
+```
+meetly-workspace/
+├── main.py          # REST API, WebSocket signaling, SQLite
+├── index.html       # login / join with office code / register company  ->  served at /
+├── dashboard.html   # dashboard, chats, meetings, teams, people, admin  ->  served at /dashboard
+├── call.html        # standalone full-screen call and meeting page  ->  served at /call/<id>
+├── README.md
+├── meetly.db*       # created on first run (SQLite + WAL files)
+└── uploads/         # created on first run (shared files, local storage for testing)
+```
+
+## Run
+
+```bash
+pip install fastapi "uvicorn[standard]" pydantic
+export APP_SECRET="a-long-random-string"     # optional
+uvicorn main:app --reload                     # http://127.0.0.1:8000/
+```
+
+| Env var | Purpose | Default |
+|---|---|---|
+| `APP_SECRET` | Session signing key | generated, kept in DB |
+| `DB_PATH` | SQLite file | `meetly.db` |
+| `UPLOAD_DIR` | Where shared files are stored | `uploads/` |
+| `PUBLIC_URL` | Public address used in meeting invitation links, e.g. `https://meet.example.com` | request address |
+| `WORKSPACE_QUOTA_MB` | File storage limit per workspace | `2048` |
+
+Upgrading from v2: keep your `meetly.db`. New columns and tables are added on startup. Replace `main.py` and `index.html`, and add `dashboard.html`.
+
+## Credentials and account recovery
+
+Every new account gets a **personal recovery key** (`MRK-XXXX-XXXX-XXXX-XXXX-XXXX`, 100 bits) and a downloadable **credential file** (JSON). The page will not continue until the file is downloaded.
+
+| When | Who downloads | File contains |
+|---|---|---|
+| Company registered | Admin | email, password, recovery key, plus the office code and office secret for inviting staff |
+| Employee joins with office code | Employee | email, password, recovery key |
+| Admin adds an employee | Admin, hands it to the employee | email, temporary password, recovery key |
+| Admin reissues credentials | Admin, hands it over | new temporary password, new recovery key |
+| Recovery key regenerated (Profile) | The person | email, new recovery key (no password) |
+| Password reset with a recovery key | The person | new password, **new** recovery key |
+
+```json
+{
+  "schema": "meetly.credentials/v1",
+  "app_url": "https://your-host",
+  "issued_at": "2026-10-11T10:00:00Z",
+  "issued_by": "workspace-registration",
+  "workspace": { "name": "Acme Corp", "office_code": "ACME-5B50" },
+  "account": { "name": "Ann A", "email": "a@x.com", "role": "Workspace Admin", "access": "admin" },
+  "credentials": { "email": "a@x.com", "password": "…", "recovery_key": "MRK-7SJ9-YJ77-4EER-9WHR-U25U" },
+  "workspace_invite": { "office_code": "ACME-5B50", "office_secret": "…" },
+  "fingerprint": "57a14b320bd1a4af",
+  "notes": ["…"]
+}
+```
+
+`workspace_invite` appears only in the admin's file at registration. The password is the one set when the file was issued and can be out of date after a change. The recovery key does not change when the password changes.
+
+**Forgot password** (`/#forgot`, or the link on the sign-in form): upload the credential file or type the email and recovery key, then choose a new password. The file is checked against its fingerprint in the browser. On success all sessions are signed out, the key is replaced, and a new credential file is downloaded.
+
+**Safeguards:** only PBKDF2 hashes of the key are stored. Wrong keys lock recovery for that account for 30 minutes after 5 tries, and there is an IP rate limit. Unknown emails and wrong keys get the same error. A used key cannot be replayed. Keys are shown once and never retrievable: a person who loses both password and file needs an admin to reissue credentials. If the only admin loses both, create a second admin first. Employees from older versions show "No recovery key" in the admin list until they generate one in Profile or an admin reissues credentials.
+
+## Calls and meetings: their own full-screen page
+
+Every call and meeting opens in its **own window at `/call/<id>`** (`call.html`). The dashboard tab stays free for chat. Meeting invitation links point straight at this page, and if the person is signed out they sign in and land back in the call.
+
+- **Join screen (meetings):** camera preview, mic level meter, mic and camera toggles, microphone, camera and speaker pickers, speaker test.
+- **Voice calls** (direct, group, team, space) join instantly with audio only. **Meeting mode** turns a voice call into video for the group, **Voice mode** switches back. Meetings are always video.
+- **Full screen:** the F key or the button. In full screen the bars hide until you move the mouse. Double-click any tile to full-screen just that tile.
+- **Back to chat:** the call keeps running in its window. The dashboard shows an **in-call bar** (call name, timer, mute, return, leave) and a "Return to call" button in the chat. If you open a call link while already in a call you get a clear message, and a second window can take the call over.
+- **Controls:** mute, camera, present (only the presenter sees Stop sharing), raise hand, reactions, people panel with connection quality, in-call chat, details panel, grid or speaker view, pin, hide own tile, add people (rings them and adds them to the group or invite list), settings, keyboard shortcuts (press `?`).
+- **Host tools** (organizer, group owner, team owner, admin): mute one person or everyone, remove someone, **lock the call**, **end for everyone**.
+- **Audio recording on your own device:** everyone in the call sees a red Recording badge and is told who is recording. The file downloads when you stop.
+- **Production touches:** one call per browser (cross-window lock), reconnect and rejoin after a dropped connection, ICE restart on a stalled path, video bitrate limits that drop as the call grows, connection statistics with a "turn camera off" suggestion on poor links, screen wake lock, audio-unblock banner if the browser blocks autoplay, clear errors for blocked or missing microphones, leave-warning when closing the tab mid-call, and a shared call timer.
+- Up to 8 people per live call.
+
+## Meetings with invitations
+
+Create a meeting with title, start, duration, agenda and people. Everyone invited gets a chat message like:
+
+```
+📅 Meeting invitation
+Title: Weekly sync
+Date: Mon, 12 Oct 2026
+Time: 3:00 PM - 3:45 PM (GMT+5:30)
+Duration: 45 min
+Agenda:
+  - Roadmap
+  - Hiring plan
+People (3): Ann A, Bob B, Cy C
+Organizer: Ann A
+Join: https://meet.example.com/call/ab12cd34
+```
+
+Edits send "Meeting updated" to people already invited and an invitation to newly added people. Removing someone or deleting the meeting sends "Meeting cancelled". People get a reminder 10 minutes before the start (chat notice plus a pop-up with a Join button). Create a meeting from inside a group or team chat and the invitation is posted once in that chat; people outside it get a direct message. Leave the start empty to start now and ring everyone. **Add to calendar** downloads an `.ics` file.
+
+## Groups
+
+**New group** creates a group chat (3 or more people, up to 50). From inside it you can start a voice call, schedule a meeting, add or remove members, rename it, or leave. Ownership passes on if the owner leaves.
+
+## Operations
+
+Call history for everyone (Dashboard, Recent calls) and for admins (Admin, Calls: duration, people, peak). Admin System tab shows uptime, live calls, database size and storage against the quota, and exports workspace data as JSON without passwords or keys. Every API request is logged as one JSON line with a request id (`X-Request-ID`). `/api/health` and `/api/ready` for monitoring. Chat is rate limited per user. Shutdown closes sockets cleanly so browsers reconnect. Back up the database with `sqlite3 meetly.db ".backup backup.db"`, and compress responses at your reverse proxy.
+
+## Dashboard sections (`/dashboard#/...`)
+
+| Route | What |
+|---|---|
+| `dashboard` | Quick actions, stats, upcoming meetings, unread chats, who is online, teams |
+| `chats`, `chats/<id>` | Conversation list with previews, unread badges, filters, search; full chat view |
+| `meetings` | Create, edit, delete, join with video, copy invite link |
+| `teams` | Members, spaces, edit, leave |
+| `people` | Directory with filters, Message and Call |
+| `profile` | Details, password, desktop alerts |
+| `admin/overview, employees, teams, meetings, workspace, audit` | Admin only |
+
+## Chat features
+
+Send, reply (quoted), emoji reactions, edit, **delete for me / delete for everyone** ("This message was deleted" placeholder), **clear chat for me**, clear for everyone (admin, team or room owner, not in direct chats), search, load earlier, date separators, typing indicator, read ticks in direct chats, unread counts that survive reload, desktop alerts, emoji picker, link detection.
+
+**Files:** attach button, drag and drop, or paste an image. Preview and caption before sending, progress bar with cancel, **50 MB per file** (checked in the browser and again on the server while streaming). Images, video and audio play inline. Everything else downloads. Executable types (`.exe .bat .cmd .com .scr .msi .vbs .ps1 .jar .dll`) are blocked. Deleting a message, clearing a chat, or deleting a team or space also deletes its files from disk. The "Files and media" list is in the chat info panel.
+
+## Calls (summary)
+
+| Where | Type | Media |
+|---|---|---|
+| Direct chat, group call, team, space | **Voice call** | Audio only, avatars with a speaking ring |
+| Meeting | **Video meeting** | Camera and audio; falls back to audio if no camera |
+
+**Screen share** works in both. Only the person sharing sees **Stop sharing** (and it also stops if they end sharing from the browser bar). Everyone else sees "X is presenting" and a large presenter tile. People who join later see the share too. Calls keep running while you browse other sections.
+
+## Storage
+
+Files are on local disk through the small `LocalStorage` class in `main.py`. To move to S3, GCS or Azure, replace that class (`path`, `delete`) and the two places that open the file for write and read. File links use the session token in the URL for testing; switch to signed, short-lived URLs when you change storage.
+
+## Database (SQLite, WAL, foreign keys)
+
+`workspaces` `users` `teams` `team_members` `rooms` `room_members` `messages` (reply, file) `files` `reactions` `hidden` (delete-for-me) `reads` (read marker, cleared marker) `audit` `meta`
+
+## Security
+
+PBKDF2 passwords, versioned signed tokens (reset, change or deactivate revokes sessions), forced password change for admin-created accounts, 10-minute lock after 5 failed sign-ins, rate limits, parameterised SQL, escaped output, safe inline types only for files, access check on every file download.
+
+## Before large-scale use
+
+One server process only (socket state is in memory). Add a TURN server to `ICE` in `dashboard.html` for restrictive networks. Calls use peer-to-peer mesh, so keep them to 8 people or fewer, or add an SFU. HTTPS is required for camera, microphone and screen share outside localhost. Put Nginx or Caddy in front and allow request bodies of at least 50 MB (`client_max_body_size 55m;` in Nginx).
